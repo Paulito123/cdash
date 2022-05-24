@@ -8,4 +8,4 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite://")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/project/static"
-    SECRET_KEY = '9OLWxNGpacpzaD4o83j4K4iuopO'
+    SECRET_KEY = 'lqmsfjqc8U0dmsduphf5jcmqsd09984gbrt53p1nh75f48N0'
