@@ -6,3 +6,4 @@ Inspired by:
   - https://pypi.org/project/Flask-Login/
   - https://pythonbasics.org/flask-login/
   - https://testdriven.io/blog/dockerizing-flask-with-postgres-gunicorn-and-nginx/
+  - https://hackersandslackers.com/series/build-flask-apps/
