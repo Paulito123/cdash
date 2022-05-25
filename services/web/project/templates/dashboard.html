@@ -6,4 +6,27 @@
 <h1 class="title">
   Welcome, {{ name }}!
 </h1>
+<table  class="table">
+  <tr>
+    <th>Address</th>
+    <th>Name</th>
+    <th>Balance</th>
+    <th>Tower height</th>
+  </tr>
+  {% for row in rows %}
+  <tr>
+    <td class="px-1">{{ row.address }}</td>
+    <td class="px-1">{{ row.name }}</td>
+    <td class="px-1">{{ row.balance }}</td>
+    <td class="px-1">{{ row.towerheight }}</td>
+  </tr>
+  {% endfor %}
+  <tr>
+    <td class="px-1"></td>
+    <td class="px-1">Total:</td>
+    <td class="px-1">{{ som }}</td>
+    <td class="px-1"></td>
+  </tr>
+
+</table>
 {% endblock %}
