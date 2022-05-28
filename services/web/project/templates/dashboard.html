@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1 class="title">
-  Welcome, {{ name }}!
+  Hey, {{ name }}! <br />Total balance is {{ som/100 }}
 </h1>
 <table  class="table">
   <tr>
@@ -12,19 +12,21 @@
     <th>Name</th>
     <th>Balance</th>
     <th>Tower height</th>
+    <th>Last updated</th>
   </tr>
   {% for row in rows %}
   <tr>
     <td class="px-1">{{ row.address }}</td>
     <td class="px-1">{{ row.name }}</td>
-    <td class="px-1">{{ row.balance }}</td>
+    <td class="px-1">{{ row.balance/100 }}</td>
     <td class="px-1">{{ row.towerheight }}</td>
+    <td class="px-1">{{ row.updated_at }}</td>
   </tr>
   {% endfor %}
   <tr>
     <td class="px-1"></td>
     <td class="px-1">Total:</td>
-    <td class="px-1">{{ som }}</td>
+    <td class="px-1">{{ som/100 }}</td>
     <td class="px-1"></td>
   </tr>
 

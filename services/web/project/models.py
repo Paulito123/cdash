@@ -33,6 +33,8 @@ class AccountMetric(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     balance = db.Column(db.Integer)
     towerheight = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now())
 
     def __repr__(self):
         return "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>".format(
