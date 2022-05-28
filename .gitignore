@@ -1,7 +1,7 @@
 # Prod stuff
 .env.prod
 .env.prod.db
-*.prod.*
+manage.prod.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
