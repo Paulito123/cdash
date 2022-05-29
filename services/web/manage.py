@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask.cli import FlaskGroup
 from project import create_app, db
 from project.models import User, AccountMetric
+from secrets import SecretsDev
 
 
 app = create_app()
@@ -17,30 +18,23 @@ def create_db():
 
 @cli.command("seed_db")
 def seed_db():
-    u1 = User(
-        email="bla@mail.com",
-        name="Bla die Bla",
-        password=generate_password_hash("SecretPassword", method='sha256'))
-    u2 = User(
-        email="foo@mail.com",
-        name="Foo die Foo",
-        password=generate_password_hash("SecretPassword", method='sha256'))
-    db.session.add(u1)
-    db.session.add(u2)
+    for user in SecretsDev.user_list:
+        u = User(
+            email=f"{user.email}",
+            name=f"{user.name}",
+            password=generate_password_hash(f"{user.paswd}", method='sha256'))
+        db.session.add(u)
 
-    a1 = AccountMetric(
-        address="91185ED5A1976F2E01BE08EE96E4D9D2",
-        name="Validator Acc 1",
-        balance=0,
-        towerheight=0)
-    a2 = AccountMetric(
-        address="59357260C14BC6576749D87EB627D727",
-        name="Node account 1",
-        balance=0,
-        towerheight=0)
+    counter = 1
+    for acnt in SecretsDev.account_list:
+        a = AccountMetric(
+            address=f"{acnt}",
+            name=f"Account {counter}",
+            balance=0,
+            towerheight=0)
+        db.session.add(a)
+        counter = counter + 1
 
-    db.session.add(a1)
-    db.session.add(a2)
     db.session.commit()
 
 
