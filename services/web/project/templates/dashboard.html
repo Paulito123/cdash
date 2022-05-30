@@ -3,32 +3,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Hey, {{ name }}! <br />Total balance is {{ som/100 }}
-</h1>
-<table  class="table">
+<div class="box">
+  <div class="columns">
+    <div class="column">
+      Total balance:<br /><strong>{{ totalbalance/100 }}</strong>
+    </div>
+    <div class="column">
+      Number of miners:<br /><strong>{{ nrofaccounts }}</strong>
+    </div>
+    <div class="column">
+      Total proofs mined:<br /><strong>{{ totalheight }}</strong>
+    </div>
+    <div class="column">
+      Last dashboard refresh:<br /><strong>{{ lastupdate }}</strong>
+    </div>
+  </div>
+</div>
+<table class="table">
   <tr>
-    <th>Address</th>
     <th>Name</th>
+    <th>Address</th>
     <th>Balance</th>
     <th>Tower height</th>
     <th>Last updated</th>
   </tr>
   {% for row in rows %}
   <tr>
-    <td class="px-1">{{ row.address }}</td>
     <td class="px-1">{{ row.name }}</td>
+    <td class="px-1">{{ row.address }}</td>
     <td class="px-1">{{ row.balance/100 }}</td>
     <td class="px-1">{{ row.towerheight }}</td>
     <td class="px-1">{{ row.updated_at }}</td>
   </tr>
   {% endfor %}
-  <tr>
-    <td class="px-1"></td>
-    <td class="px-1">Total:</td>
-    <td class="px-1">{{ som/100 }}</td>
-    <td class="px-1"></td>
-  </tr>
-
 </table>
 {% endblock %}

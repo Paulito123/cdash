@@ -15,5 +15,14 @@ def index():
 @login_required
 def dashboard():
     rows = AccountMetric.query.all()
-    som = db.session.query(db.func.sum(AccountMetric.balance)).scalar()
-    return render_template('dashboard.html', name=current_user.name, rows=rows, som=som)
+    totalbalance = db.session.query(db.func.sum(AccountMetric.balance)).scalar()
+    totalheight = db.session.query(db.func.sum(AccountMetric.towerheight)).scalar()
+    nrofaccounts = db.session.query(db.func.count(AccountMetric.address)).scalar()
+    lastupdate = db.session.query(db.func.max(AccountMetric.updated_at)).scalar()
+    return render_template('dashboard.html',
+                           name=current_user.name,
+                           rows=rows,
+                           totalbalance=totalbalance,
+                           totalheight=totalheight,
+                           lastupdate=lastupdate,
+                           nrofaccounts=nrofaccounts)
