@@ -18,10 +18,8 @@ services:
     image: postgres:13-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=hello_flask
-      - POSTGRES_PASSWORD=hello_flask
-      - POSTGRES_DB=hello_flask_dev
+    env_file:
+      - ./.env.dev.db
 
   crawler:
     build: ./services/crawler
@@ -30,7 +28,6 @@ services:
       - ./services/crawler/:/usr/src/app/
     depends_on:
       - db
-      - web
     env_file:
       - ./.env.dev
 
