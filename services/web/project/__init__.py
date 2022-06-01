@@ -1,9 +1,13 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+# from OpenSSL import SSL
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
+# context = SSL.Context(SSL.TLSv1_2_METHOD)
+# context.use_privatekey_file('./services/nginx/certs/localhost.key')
+# context.use_certificate_file('./services/nginx/certs/localhost.crt')
 
 
 def create_app():

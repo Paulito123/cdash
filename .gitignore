@@ -1,5 +1,5 @@
 # Prod stuff
-.env.prod
+.env.prod*
 .env.prod.db
 manage.prod.py
 
@@ -137,3 +137,4 @@ dmypy.json
 *.crt
 *.key
 *prod.py
+*.pem
