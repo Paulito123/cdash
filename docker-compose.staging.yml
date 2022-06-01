@@ -25,7 +25,7 @@ services:
 
   nginx-proxy:
     container_name: nginx-proxy
-    build: nginx
+    build: services/nginx
     restart: always
     ports:
       - 443:443
