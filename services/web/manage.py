@@ -3,6 +3,7 @@ from flask.cli import FlaskGroup
 from project import create_app, db
 from project.models import User, AccountMetric
 from secrets import SecretsDev
+# from secrets_prod import SecretsProd
 
 
 app = create_app()
@@ -18,14 +19,16 @@ def create_db():
 
 @cli.command("seed_db")
 def seed_db():
+    # for user in SecretsProd.user_list:
     for user in SecretsDev.user_list:
         u = User(
-            email=f"{user.email}",
-            name=f"{user.name}",
-            password=generate_password_hash(f"{user.paswd}", method='sha256'))
+            email=f"{user['email']}",
+            name=f"{user['name']}",
+            password=generate_password_hash(f"{user['paswd']}", method='sha256'))
         db.session.add(u)
 
     counter = 1
+    # for acnt in SecretsProd.account_list:
     for acnt in SecretsDev.account_list:
         a = AccountMetric(
             address=f"{acnt}",
