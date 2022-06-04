@@ -21,13 +21,21 @@ services:
     env_file:
       - ./.env.dev.db
 
+  chrome:
+    image: selenium/standalone-chrome:latest
+    hostname: chrome
+    privileged: true
+    shm_size: 2g
+    depends_on:
+      - db
+
   crawler:
     build: ./services/crawler
     command: python project/app.py
     volumes:
       - ./services/crawler/:/usr/src/app/
     depends_on:
-      - db
+      - chrome
     env_file:
       - ./.env.dev
 

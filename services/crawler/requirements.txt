@@ -3,6 +3,5 @@ certifi==2022.5.18.1
 charset-normalizer==2.0.12
 greenlet==1.1.2
 idna==3.3
-lxml==4.8.0
 requests==2.27.1
 SQLAlchemy==1.4.36
