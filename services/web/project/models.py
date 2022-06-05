@@ -46,7 +46,7 @@ class MinerHistory(db.Model):
     __tablename__ = "minerhistory"
 
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(100), nullable=False, unique=True)
+    address = db.Column(db.String(100), nullable=False)
     epoch = db.Column(db.Integer, nullable=False, default=0)
     proofssubmitted = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -57,7 +57,7 @@ class PaymentEvent(db.Model):
     __tablename__ = "paymentevent"
 
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(100), nullable=False, unique=True)
+    address = db.Column(db.String(100), nullable=False)
     height = db.Column(db.Integer, nullable=False, default=0)
     type = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Integer, nullable=False, default=0)
@@ -71,7 +71,7 @@ class ChainEvent(db.Model):
     __tablename__ = "chainevent"
 
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(100), nullable=False, unique=True)
+    address = db.Column(db.String(100), nullable=False)
     height = db.Column(db.Integer, nullable=False, default=0)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     type = db.Column(db.String(100), nullable=False, default="")

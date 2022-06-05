@@ -25,7 +25,7 @@ class MinerHistory(Base):
     __tablename__ = "minerhistory"
 
     id = Column(Integer, primary_key=True)
-    address = Column(String(100), nullable=False, unique=True)
+    address = Column(String(100), nullable=False)
     epoch = Column(Integer, nullable=False, default=0)
     proofssubmitted = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
@@ -36,7 +36,7 @@ class PaymentEvent(Base):
     __tablename__ = "paymentevent"
 
     id = Column(Integer, primary_key=True)
-    address = Column(String(100), nullable=False, unique=True)
+    address = Column(String(100), nullable=False)
     height = Column(Integer, nullable=False, default=0)
     type = Column(String(100), nullable=False)
     amount = Column(Integer, nullable=False, default=0)
@@ -50,7 +50,7 @@ class ChainEvent(Base):
     __tablename__ = "chainevent"
 
     id = Column(Integer, primary_key=True)
-    address = Column(String(100), nullable=False, unique=True)
+    address = Column(String(100), nullable=False)
     height = Column(Integer, nullable=False, default=0)
     timestamp = Column(DateTime, nullable=False, default=func.now())
     type = Column(String(100), nullable=False, default="")
