@@ -5,3 +5,4 @@ greenlet==1.1.2
 idna==3.3
 requests==2.27.1
 SQLAlchemy==1.4.36
+selenium==4.2.0
