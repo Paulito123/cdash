@@ -59,10 +59,7 @@ def add_address(addr="", name=""):
 
     # insert new account
     a = AccountStat(address=f"{addr}",
-                      name=f"{name}",
-                      balance=0,
-                      towerheight=0,
-                      lastepoch=0)
+                    name=f"{name}")
     db.session.add(a)
     db.session.commit()
 
