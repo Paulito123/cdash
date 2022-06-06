@@ -42,7 +42,7 @@ def dashboard():
         lastepochmined = db.session.query(db.func.max(AccountStat.lastepochmined)).scalar()
         prev_epoch = lastepochmined - 1
         avg_proofs_mined_last_epoch = round(db.engine.execute(f"select avg(proofssubmitted) as average from minerhistory where epoch = {prev_epoch}").scalar(), 2)
-        rewards_last_epoch = round(db.engine.execute(f"select sum(pe.amount) from paymentevent pe join (select address, max(height) as height from paymentevent group by address) pe2 on pe.address = pe2.address and pe.height = pe2.height").scalar() / 1000, 2)
+        rewards_last_epoch = round(db.engine.execute("select sum(pe.amount) from paymentevent pe join (select address, max(height) as height from paymentevent group by address) pe2 on pe.address = pe2.address and pe.height = pe2.height").scalar() / 1000, 2)
         proofs_submitted_last_epoch = db.engine.execute(f"select sum(proofssubmitted) as proofs from minerhistory where epoch = {prev_epoch}").scalar()
         reward_pp_last_epoch = round(float(rewards_last_epoch) / float(proofs_submitted_last_epoch), 3)
         miner_history = db.engine.execute(f"select address, epoch, proofssubmitted from minerhistory where epoch > {prev_epoch} - 10 order by 1, 2 asc").all()
