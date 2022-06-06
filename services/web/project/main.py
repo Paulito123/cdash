@@ -11,7 +11,11 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return render_template('index.html')
+    if current_user.is_authenticated:
+        name = current_user.name
+    else:
+        name = ""
+    return render_template('index.html', name=name)
 
 
 @main.route('/dashboard')

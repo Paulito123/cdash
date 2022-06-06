@@ -41,10 +41,7 @@
                     <div id="navbarMenuHeroA" class="level-right">
                         <div class="level-item">
                             {% if not current_user.is_authenticated %}
-                            <a href="{{ url_for('main.index') }}" class="navbar-item">
-                                <strong>Home</strong>
-                            </a>
-                            <a href="{{ url_for('auth.login') }}" class="button is-success is-light">
+                            <a href="{{ url_for('auth.login') }}" class="navbar-item">
                                 Login
                             </a>
                             {% endif %}
@@ -52,7 +49,7 @@
                             <a href="{{ url_for('main.dashboard') }}" class="navbar-item">
                                 <strong>Dashboard</strong>
                             </a>
-                            <a href="{{ url_for('auth.logout') }}" class="button is-danger is-light">
+                            <a href="{{ url_for('auth.logout') }}" class="navbar-item">
                                 Logout
                             </a>
                             {% endif %}
