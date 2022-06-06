@@ -8,3 +8,4 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/project/static"
     SECRET_KEY = f"{os.getenv('SECRET_KEY')}"
+    BASE_URL = f"{os.getenv('BASE_URL')}"
