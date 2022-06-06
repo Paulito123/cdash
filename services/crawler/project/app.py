@@ -183,8 +183,8 @@ def scrape():
             print(f"{e}")
 
 if __name__ == "__main__":
-    sleep(5)
-    sleepy_time = 1 #Config.SLEEP_MINS
+    sleep(60)
+    sleepy_time = Config.SLEEP_MINS
     while True:
         scrape()
         sleep(60 * sleepy_time)
