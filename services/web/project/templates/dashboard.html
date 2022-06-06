@@ -3,88 +3,135 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="box">
-  <div class="columns">
-    <div class="column">
-      Total balance:<br /><strong>{{ totalbalance/1000 }}</strong>
-    </div>
-    <div class="column">
-      Number of miners:<br /><strong>{{ nrofaccounts }}</strong>
-    </div>
-    <div class="column">
-      Total proofs mined:<br /><strong>{{ totalheight }}</strong>
-    </div>
-    <div class="column">
-      Last data refresh:<br /><strong>{{ lastupdate }}</strong>
+<nav class="level">
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Balance</p>
+      <p class="title">{{ totalbalance }}</p>
     </div>
   </div>
-  <div class="columns">
-    <div class="column">
-      Last epoch mined:<br /><strong>{{ lastepochmined }}</strong>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Proofs mined</p>
+      <p class="title">{{ totalheight }}</p>
     </div>
-    <div class="column">
-      AVG time per proof:<br /><strong>0</strong>
+  </div>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Current Epoch</p>
+      <p class="title">{{ lastepochmined }}</p>
     </div>
-    <div class="column">
-      AVG nr of proofs epoch {{ lastepochmined-1 }}:<br /><strong>{{ avg_proofs_mined_last_epoch }}</strong>
+  </div>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Accounts</p>
+      <p class="title">{{ nrofaccounts }}</p>
     </div>
-    <div class="column">
-      Rewards epoch {{ lastepochmined-1 }}<br /><strong>{{ rewards_last_epoch / 1000 }}</strong>
+  </div>
+</nav>
+<nav class="level">
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Rewards E-1</p>
+      <p class="title">{{ rewards_last_epoch }}</p>
     </div>
+  </div>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Proofs E-1</p>
+      <p class="title">{{ proofs_submitted_last_epoch }}</p>
+    </div>
+  </div>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">AVG Proofs E-1</p>
+      <p class="title">{{ avg_proofs_mined_last_epoch }}</p>
+    </div>
+  </div>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Ratio</p>
+      <p class="title">{{ reward_pp_last_epoch }}</p>
+    </div>
+  </div>
+</nav>
+<div class="box">
+  <div class="table-container">
+    <table class="table">
+      <tr>
+        <th>Name</th>
+        <th>Balance</th>
+        <th>Tower <br />height</th>
+        <th>Proofs</th>
+        <th>Epoch</th>
+        <th>Proofs mined 10 last epochs</th>
+        <th>Last refreshed</th>
+      </tr>
+      {% for row in rows %}
+      <tr>
+        <td class="px-1"><a href="{{ base_url + row.address }}" target="_blank"><u>{{ row.name }}</u></a></td>
+        <td class="px-1">{{ row.balance/1000 }}</td>
+        <td class="px-1">{{ row.towerheight }}</td>
+        <td class="px-1">{{ row.proofsinepoch }}</td>
+        <td class="px-1">{{ row.lastepochmined }}</td>
+        <td class="px-1">
+          <canvas id="{{ 'chart_' + row.address }}" width="250" height="60"></canvas>
+          <script>
+            var ctx = document.getElementById("{{ 'chart_' + row.address }}").getContext("2d");
+            const lab_lst_{{ row.address }} = [];
+            const val_lst_{{ row.address }} = [];
+            {% if row.address in chart_data %}
+              const tmp_{{ row.address }} = {{ chart_data[row.address]|safe }};
+              const lab_tmp_{{ row.address }} = tmp_{{ row.address }}["labels"].toString().split(',');
+              const val_tmp_{{ row.address }} = tmp_{{ row.address }}["values"].toString().split(',');
+              lab_tmp_{{ row.address }}.forEach(str => {
+                lab_lst_{{ row.address }}.push(Number(str));
+              });
+              val_tmp_{{ row.address }}.forEach(str => {
+                val_lst_{{ row.address }}.push(Number(str));
+              });
+            {% endif %}
+
+            var lineChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: lab_lst_{{ row.address }},
+                datasets: [
+                  {
+                    label: "proofs",
+                    data: val_lst_{{ row.address }},
+                    fill: false,
+                    lineTension: 0.1,
+                    borderColor: 'rgba(0, 0, 0, 0.8)'
+                  }
+                ]
+              },
+              options: {
+                scales:{
+                  x: {
+                    display: false
+                  },
+                  y: {
+                    max: 73,
+                    ticks: {
+                        stepSize: 1
+                    }
+                  }
+                },
+                responsive: false,
+                plugins: {
+                  legend: {
+                      display: false,
+                  }
+                }
+              }
+            });
+          </script>
+        </td>
+        <td class="px-1">{{ row.updated_at }}</td>
+      </tr>
+      {% endfor %}
+    </table>
   </div>
 </div>
-<table class="table">
-  <tr>
-    <th>Name</th>
-    <th>Address</th>
-    <th>Balance</th>
-    <th>Tower <br />height</th>
-    <th>Proofs <br />in epoch</th>
-    <th>Last <br />epoch</th>
-    <th>Yield evolution 10 last epochs</th>
-  </tr>
-  {% for row in rows %}
-  <tr>
-    <td class="px-1">{{ row.name }}</td>
-    <td class="px-1">{{ row.address }}</td>
-    <td class="px-1">{{ row.balance/1000 }}</td>
-    <td class="px-1">{{ row.towerheight }}</td>
-    <td class="px-1">{{ row.proofsinepoch }}</td>
-    <td class="px-1">{{ row.lastepochmined }}</td>
-    <td class="px-1">
-      <canvas id="lineChart" width="300" height="80"></canvas>
-      <script>
-        var ctx = document.getElementById("lineChart").getContext("2d");
-        var lineChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: {{ labels | safe }},
-            datasets: [
-              {
-                label: "bla",
-                data: {{ values | safe }},
-                fill: false,
-                lineTension: 0.1
-              }
-            ]
-          },
-          options: {
-            scales:{
-              x: {
-                display: false
-              }
-            },
-            responsive: false,
-            plugins: {
-              legend: {
-                  display: false,
-              }
-            }
-          }
-        });
-      </script>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
 {% endblock %}
