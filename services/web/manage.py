@@ -42,6 +42,12 @@ def seed_db():
     db.session.commit()
 
 
+@cli.command("init_db")
+def init_db():
+    create_db()
+    seed_db()
+
+
 @cli.command("add_address")
 @click.option("--addr")
 @click.option("--name")
