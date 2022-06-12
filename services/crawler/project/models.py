@@ -1,8 +1,8 @@
 """Declare models and relationships."""
-from sqlalchemy import Column, DateTime, Integer, String, func, UniqueConstraint
+from sqlalchemy import Column, DateTime, Integer, String, func
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm.attributes import InstrumentedAttribute
-from database import session, engine
+
+from database import engine
 
 Base = declarative_base()
 
@@ -18,7 +18,7 @@ class AccountStat(Base):
     proofsinepoch = Column(Integer, nullable=False, default=0)
     lastepochmined = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
 
 class MinerHistory(Base):
@@ -29,21 +29,7 @@ class MinerHistory(Base):
     epoch = Column(Integer, nullable=False, default=0)
     proofssubmitted = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-
-    __table_args__ = (UniqueConstraint('address', 'epoch', name='uc_address_epoch'),)
-
-    # def update(self):
-    #     mapped_values = {}
-    #     for item in MinerHistory.__dict__.iteritems():
-    #         field_name = item[0]
-    #         field_type = item[1]
-    #         is_column = isinstance(field_type, InstrumentedAttribute)
-    #         if is_column:
-    #             mapped_values[field_name] = getattr(self, field_name)
-    #
-    #     session.query(MinerHistory).filter(MinerHistory.id == self.id).update(mapped_values)
-    #     session.commit()
+    updated_at = Column(DateTime, server_default=func.now())
 
 
 class PaymentEvent(Base):
@@ -57,7 +43,7 @@ class PaymentEvent(Base):
     sender = Column(String(100))
     recipient = Column(String(100))
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
 
 class ChainEvent(Base):
@@ -72,6 +58,6 @@ class ChainEvent(Base):
     sender = Column(String(100))
     recipient = Column(String(100))
     created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
 # Base.metadata.create_all(engine)

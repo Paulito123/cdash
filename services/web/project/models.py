@@ -29,14 +29,14 @@ class AccountStat(db.Model):
     __tablename__ = "accountstat"
 
     id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(100), unique=True, nullable=False)
+    address = db.Column(db.String(100), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     balance = db.Column(db.Integer, nullable=False, default=0)
     towerheight = db.Column(db.Integer, nullable=False, default=0)
     proofsinepoch = db.Column(db.Integer, nullable=False, default=0)
     lastepochmined = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now())
 
     def __repr__(self):
         return f'<a href="https://0l.interblockcha.in/address/{self.address}">{self.address}</a>'
@@ -50,10 +50,7 @@ class MinerHistory(db.Model):
     epoch = db.Column(db.Integer, nullable=False, default=0)
     proofssubmitted = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
-
-    __table_args__ = (db.UniqueConstraint('address', 'epoch', name='uc_address_epoch'),
-                      )
+    updated_at = db.Column(db.DateTime, server_default=db.func.now())
 
 
 class PaymentEvent(db.Model):
@@ -67,7 +64,7 @@ class PaymentEvent(db.Model):
     sender = db.Column(db.String(100))
     recipient = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now())
 
 
 class ChainEvent(db.Model):
@@ -82,4 +79,4 @@ class ChainEvent(db.Model):
     sender = db.Column(db.String(100))
     recipient = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now())
