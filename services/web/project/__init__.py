@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from pytz import timezone, utc
+# import tzlocal
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
@@ -23,6 +25,15 @@ def create_app():
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
         return User.query.get(int(user_id))
+
+    @app.template_filter('to_cet')
+    def datetimefilter(value):
+        format = "%Y-%m-%d %H:%M:%S"
+        tz = timezone('Europe/Brussels')
+        u = timezone('UTC')
+        value = u.localize(value, is_dst=None).astimezone(utc)
+        local_dt = value.astimezone(tz)
+        return local_dt.strftime(format)
 
     # blueprint for auth routes in our app
     from .auth import auth as auth_blueprint
