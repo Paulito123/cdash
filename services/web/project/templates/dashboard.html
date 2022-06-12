@@ -69,7 +69,7 @@
       </tr>
       {% for row in rows %}
       <tr>
-        <td class="px-1"><a href="{{ base_url + row.address }}" target="_blank"><u>{{ row.name }}</u></a></td>
+        <td class="px-1"><a href="{{ address_url + row.address }}" target="_blank"><u>{{ row.name }}</u></a></td>
         <td class="px-1">{{ row.balance/1000 }}</td>
         <td class="px-1">{{ row.towerheight }}</td>
         <td class="px-1">{{ row.proofsinepoch }}</td>
