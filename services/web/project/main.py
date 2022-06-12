@@ -30,9 +30,11 @@ def dashboard():
     rewards_last_epoch = 0
     proofs_submitted_last_epoch = 0
     reward_pp_last_epoch = 0
-    chart_data = {}
+    chart_epoch = {}
+    chart_reward = {}
     prev_epoch = 0
     miner_history = {}
+    payment_events = {}
 
     try:
         rows = AccountStat.query.order_by(db.asc(AccountStat.name)).all()
@@ -77,16 +79,30 @@ def dashboard():
         if q_result:
             miner_history = q_result
 
-        chart_data = {}
         for address, epoch, proofs in miner_history:
-            if address in chart_data:
-                chart_data[address]["labels"].append(epoch)
-                chart_data[address]["values"].append(proofs)
+            if address in chart_epoch:
+                chart_epoch[address]["labels"].append(epoch)
+                chart_epoch[address]["values"].append(proofs)
             else:
                 data_dict = {"labels": [], "values": []}
                 data_dict["labels"].append(epoch)
                 data_dict["values"].append(proofs)
-                chart_data[address] = data_dict
+                chart_epoch[address] = data_dict
+
+        q_result = db.engine.execute("select address, amount / 1000 as amount, ranknr from (select address, amount, rank() over (partition by address order by address, height desc) ranknr from paymentevent) pe where ranknr <= 10 order by 1, 3 desc").all()
+        if q_result:
+            payment_events = q_result
+
+        for address, amount, ranknr in payment_events:
+            if address in chart_reward:
+                chart_reward[address]["labels"].append(prev_epoch + 1 - ranknr)
+                chart_reward[address]["values"].append(amount)
+            else:
+                data_dict = {"labels": [], "values": []}
+                data_dict["labels"].append(prev_epoch + 1 - ranknr)
+                data_dict["values"].append(amount)
+                chart_reward[address] = data_dict
+
     except Exception as e:
         print(f"{e}")
 
@@ -101,6 +117,7 @@ def dashboard():
                            avg_proofs_mined_last_epoch=avg_proofs_mined_last_epoch,
                            rewards_last_epoch=rewards_last_epoch,
                            address_url=address_url,
-                           chart_data=chart_data,
+                           chart_epoch=chart_epoch,
+                           chart_reward=chart_reward,
                            proofs_submitted_last_epoch=proofs_submitted_last_epoch,
                            reward_pp_last_epoch=reward_pp_last_epoch)

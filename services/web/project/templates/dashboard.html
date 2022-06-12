@@ -64,7 +64,8 @@
         <th>Tower <br />height</th>
         <th>Proofs</th>
         <th>Epoch</th>
-        <th>Proofs mined 10 last epochs</th>
+        <th>Proofs mined E-11 TD</th>
+        <th>Rewards E-11 TD</th>
         <th>Last refreshed</th>
       </tr>
       {% for row in rows %}
@@ -80,8 +81,8 @@
             var ctx = document.getElementById("{{ 'chart_' + row.address }}").getContext("2d");
             const lab_lst_{{ row.address }} = [];
             const val_lst_{{ row.address }} = [];
-            {% if row.address in chart_data %}
-              const tmp_{{ row.address }} = {{ chart_data[row.address]|safe }};
+            {% if row.address in chart_epoch %}
+              const tmp_{{ row.address }} = {{ chart_epoch[row.address]|safe }};
               const lab_tmp_{{ row.address }} = tmp_{{ row.address }}["labels"].toString().split(',');
               const val_tmp_{{ row.address }} = tmp_{{ row.address }}["values"].toString().split(',');
               lab_tmp_{{ row.address }}.forEach(str => {
@@ -113,6 +114,59 @@
                   },
                   y: {
                     max: 73,
+                    ticks: {
+                        stepSize: 1
+                    }
+                  }
+                },
+                responsive: false,
+                plugins: {
+                  legend: {
+                      display: false,
+                  }
+                }
+              }
+            });
+          </script>
+        </td>
+        <td class="px-1">
+          <canvas id="{{ 'chart_rw_' + row.address }}" width="250" height="60"></canvas>
+          <script>
+            var ctx = document.getElementById("{{ 'chart_rw_' + row.address }}").getContext("2d");
+            const lab_rw_lst_{{ row.address }} = [];
+            const val_rw_lst_{{ row.address }} = [];
+            {% if row.address in chart_reward %}
+              const tmp_rw_{{ row.address }} = {{ chart_reward[row.address]|safe }};
+              const lab_rw_tmp_{{ row.address }} = tmp_rw_{{ row.address }}["labels"].toString().split(',');
+              const val_rw_tmp_{{ row.address }} = tmp_rw_{{ row.address }}["values"].toString().split(',');
+              lab_rw_tmp_{{ row.address }}.forEach(str => {
+                lab_rw_lst_{{ row.address }}.push(Number(str));
+              });
+              val_rw_tmp_{{ row.address }}.forEach(str => {
+                val_rw_lst_{{ row.address }}.push(Number(str));
+              });
+            {% endif %}
+
+            var lineChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: lab_rw_lst_{{ row.address }},
+                datasets: [
+                  {
+                    label: "rewards",
+                    data: val_rw_lst_{{ row.address }},
+                    fill: false,
+                    lineTension: 0.1,
+                    borderColor: 'rgba(0, 0, 0, 0.8)'
+                  }
+                ]
+              },
+              options: {
+                scales:{
+                  x: {
+                    display: false
+                  },
+                  y: {
                     ticks: {
                         stepSize: 1
                     }
