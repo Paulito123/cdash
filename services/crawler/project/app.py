@@ -1,4 +1,3 @@
-import requests
 from time import sleep
 from sqlalchemy import text, func
 from sqlalchemy.exc import ProgrammingError
@@ -11,13 +10,20 @@ from config import Config
 from datetime import datetime
 
 
-def fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_known_kv) -> []:
+def fetch_0l_table_data(
+        driver,
+        xp_rows,
+        xp_button_next,
+        data_name_list,
+        last_known_kv,
+        update_most_recent=False) -> []:
     """
     :param driver: selenium driver
     :param xp_rows: xpath to tr element of the data table
     :param xp_button_next: xpath to the next button
     :param data_name_list: column names of data table
     :param last_known_kv: column name and value of last known record
+    :param update_most_recent: indicate if last row must be rewritten
     :return: list of dictionaries
     """
     output_list = []
@@ -58,12 +64,18 @@ def fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_kn
                 if len(lkk) > 0 and data_name == lkk and v.text == lkv:
                     # set break flag because record already exists in DB
                     break_flag = True
-                    break
+                    if not update_most_recent:
+                        break
 
                 output_dict[f"{data_name}"] = f"{v.text}"
                 col_index = col_index + 1
 
-            if break_flag:
+            if break_flag and not update_most_recent:
+                # break out row iteration
+                break
+            elif break_flag and update_most_recent:
+                # append the row dict to output list
+                output_list.append(output_dict)
                 # break out row iteration
                 break
             else:
@@ -71,7 +83,7 @@ def fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_kn
                 output_list.append(output_dict)
 
         if break_flag:
-            # break out of while
+            # break out of page iterator
             break
 
         # click and check status of the next button to determine if all data is loaded
@@ -143,13 +155,24 @@ def scrape():
                     data_name_list = ["epoch", "proofssubmitted"]
                     last_epoch = session.query(func.max(MinerHistory.epoch)).filter(MinerHistory.address==account.address).scalar()
                     last_known_kv = ['epoch', f'{last_epoch}'] if last_epoch else []
-                    table_data = fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_known_kv)
+                    update_most_recent = True
+                    table_data = fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_known_kv, update_most_recent)
                     for row in table_data:
+                        epoch = int(row['epoch'])
+                        id = session.query(MinerHistory.id).filter(
+                            MinerHistory.address == account.address,
+                            MinerHistory.epoch == epoch).scalar()
+
                         o = MinerHistory(
                             address=address.text,
-                            epoch=int(row['epoch']),
+                            epoch=epoch,
                             proofssubmitted=int(row['proofssubmitted']))
-                        session.add(o)
+
+                        if id:
+                            o.id = id
+                            session.merge(o)
+                        else:
+                            session.add(o)
                     session.commit()
 
                     # fetch payment events
@@ -164,13 +187,11 @@ def scrape():
                             address=address.text,
                             height=int(row['height']),
                             type=row['type'],
-                            amount=int(round(float(row['amount'].replace(',', '')), 3) * 1000),
+                            amount=int(float(row['amount'].replace(',', '')) * 1000),
                             sender=row['sender'],
                             recipient=row['recipient'])
                         session.add(o)
                     session.commit()
-
-                    print(f"{sess_account.name} crawled")
 
                 except Exception as e:
                     print(f"{e}")
@@ -182,9 +203,14 @@ def scrape():
         except Exception as e:
             print(f"{e}")
 
+
 if __name__ == "__main__":
-    sleep(60)
-    sleepy_time = Config.SLEEP_MINS
+    initial_sleep = int(Config.INITIAL_SLEEP_SECS)
+    print(f"[{datetime.now()}] Waiting {initial_sleep} secs")
+    sleep(initial_sleep)
+    sleepy_time = int(Config.SLEEP_MINS)
     while True:
+        print(f"[{datetime.now()}] Begin crawling...")
         scrape()
+        print(f"[{datetime.now()}] End crawling. Sleep {sleepy_time} minutes.")
         sleep(60 * sleepy_time)
