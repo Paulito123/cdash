@@ -98,32 +98,32 @@
             label: "proofs",
             data: proofs_lst_overall_chart,
             fill: false,
-            lineTension: 0.1,
-            borderColor: 'rgba(0, 0, 0, 0.8)',
+            lineTension: 0.5,
+            borderColor: 'rgba(255, 128, 0, 0.8)',
             yAxisID: 'y1'
           },
           {
             label: "miners",
             data: cnt_lst_overall_chart,
             fill: false,
-            lineTension: 0.1,
-            borderColor: 'rgba(10, 10, 10, 0.8)',
+            lineTension: 0,
+            borderColor: 'rgba(10, 10, 255, 0.8)',
             yAxisID: 'y'
           },
           {
             label: "total reward",
             data: amt_lst_overall_chart,
             fill: false,
-            lineTension: 0.1,
-            borderColor: 'rgba(100, 100, 100, 0.8)',
+            lineTension: 0.5,
+            borderColor: 'rgba(255, 0, 0, 0.8)',
             yAxisID: 'y1'
           },
           {
             label: "reward per proof",
             data: amtpp_lst_overall_chart,
             fill: false,
-            lineTension: 0.1,
-            borderColor: 'rgba(200, 200, 200, 0.8)',
+            lineTension: 0.5,
+            borderColor: 'rgba(0, 255, 0, 0.8)',
             yAxisID: 'y'
           }
         ]
@@ -134,7 +134,10 @@
             ticks: {
                 stepSize: 1
             },
-            position: 'right'
+            position: 'right',
+            grid: {
+              display: false,
+            }
           },
           y1: {
             ticks: {
