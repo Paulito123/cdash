@@ -56,6 +56,99 @@
   </div>
 </nav>
 <div class="box">
+  <canvas id="chart_overall_perf" width="1100" height="400"></canvas>
+  <script>
+    var ctx = document.getElementById("chart_overall_perf").getContext("2d");
+    const label_lst_overall_chart = [];
+    const proofs_lst_overall_chart = [];
+    const amt_lst_overall_chart = [];
+    const amtpp_lst_overall_chart = [];
+    const cnt_lst_overall_chart = [];
+
+    const tmp_overall_chart = {{ chart_overall_perf|safe }};
+
+    const label_overall_chart_tmp = tmp_overall_chart["labels"].toString().split(',');
+    const proofs_overall_chart_tmp = tmp_overall_chart["proofs"].toString().split(',');
+    const amt_overall_chart_tmp = tmp_overall_chart["amount"].toString().split(',');
+    const amtpp_overall_chart_tmp = tmp_overall_chart["amountpp"].toString().split(',');
+    const cnt_overall_chart_tmp = tmp_overall_chart["nrofaccounts"].toString().split(',');
+
+    label_overall_chart_tmp.forEach(str => {
+      label_lst_overall_chart.push(Number(str));
+    });
+    proofs_overall_chart_tmp.forEach(str => {
+      proofs_lst_overall_chart.push(Number(str));
+    });
+    amt_overall_chart_tmp.forEach(str => {
+      amt_lst_overall_chart.push(Number(str));
+    });
+    amtpp_overall_chart_tmp.forEach(str => {
+      amtpp_lst_overall_chart.push(Number(str));
+    });
+    cnt_overall_chart_tmp.forEach(str => {
+      cnt_lst_overall_chart.push(Number(str));
+    });
+
+    var lineChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: label_lst_overall_chart,
+        datasets: [
+          {
+            label: "proofs",
+            data: proofs_lst_overall_chart,
+            fill: false,
+            lineTension: 0.1,
+            borderColor: 'rgba(0, 0, 0, 0.8)',
+            yAxisID: 'y1'
+          },
+          {
+            label: "miners",
+            data: cnt_lst_overall_chart,
+            fill: false,
+            lineTension: 0.1,
+            borderColor: 'rgba(10, 10, 10, 0.8)',
+            yAxisID: 'y'
+          },
+          {
+            label: "total reward",
+            data: amt_lst_overall_chart,
+            fill: false,
+            lineTension: 0.1,
+            borderColor: 'rgba(100, 100, 100, 0.8)',
+            yAxisID: 'y1'
+          },
+          {
+            label: "reward per proof",
+            data: amtpp_lst_overall_chart,
+            fill: false,
+            lineTension: 0.1,
+            borderColor: 'rgba(200, 200, 200, 0.8)',
+            yAxisID: 'y'
+          }
+        ]
+      },
+      options: {
+        scales:{
+          y: {
+            ticks: {
+                stepSize: 1
+            },
+            position: 'right'
+          },
+          y1: {
+            ticks: {
+                stepSize: 0.01
+            },
+            position: 'left'
+          }
+        },
+        responsive: false,
+      }
+    });
+  </script>
+</div>
+<div class="box">
   <div class="table-container">
     <table class="table">
       <tr>

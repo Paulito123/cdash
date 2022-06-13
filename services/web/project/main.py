@@ -32,6 +32,7 @@ def dashboard():
     reward_pp_last_epoch = 0
     chart_epoch = {}
     chart_reward = {}
+    chart_overall_perf = {"labels": [], "proofs": [], "amount": [], "amountpp": [], "nrofaccounts": []}
     prev_epoch = 0
     miner_history = {}
     payment_events = {}
@@ -103,6 +104,17 @@ def dashboard():
                 data_dict["values"].append(amount)
                 chart_reward[address] = data_dict
 
+        q_result = db.engine.execute("select mh.ranknr, mh.epoch, sum(proofssubmitted) as proofssubmitted, sum(amount) as amount, sum(amount) / sum(proofssubmitted) as amountpp, count(*) as nrofaccounts from (select address, epoch, proofssubmitted, rank() over (partition by address order by address, epoch desc) ranknr from minerhistory) mh join (select address, amount, rank() over (partition by address order by address, height desc) ranknr from paymentevent) pe on mh.address = pe.address and mh.ranknr = pe.ranknr where mh.ranknr <= 30 group by mh.epoch, mh.ranknr order by epoch").all()
+        if q_result:
+            overal_perf_data = q_result
+
+        for ranknr, epoch, proofssubmitted, amount, amountpp, nrofaccounts in overal_perf_data:
+            chart_overall_perf["labels"].append(epoch)
+            chart_overall_perf["proofs"].append(proofssubmitted)
+            chart_overall_perf["amount"].append(amount / 1000)
+            chart_overall_perf["amountpp"].append(amountpp / 1000)
+            chart_overall_perf["nrofaccounts"].append(nrofaccounts)
+
     except Exception as e:
         print(f"{e}")
 
@@ -120,4 +132,5 @@ def dashboard():
                            chart_epoch=chart_epoch,
                            chart_reward=chart_reward,
                            proofs_submitted_last_epoch=proofs_submitted_last_epoch,
-                           reward_pp_last_epoch=reward_pp_last_epoch)
+                           reward_pp_last_epoch=reward_pp_last_epoch,
+                           chart_overall_perf=chart_overall_perf)
