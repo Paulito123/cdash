@@ -7,25 +7,25 @@
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">Balance</p>
-      <p class="title">{{ totalbalance }}</p>
+      <p class="title">{{ totalbalance | sep_int }}</p>
     </div>
   </div>
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">Proofs mined</p>
-      <p class="title">{{ totalheight }}</p>
+      <p class="title">{{ totalheight | sep_int }}</p>
     </div>
   </div>
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">Current Epoch</p>
-      <p class="title">{{ lastepochmined }}</p>
+      <p class="title">{{ lastepochmined | sep_int }}</p>
     </div>
   </div>
   <div class="level-item has-text-centered column">
     <div>
-      <p class="heading">Accounts</p>
-      <p class="title">{{ nrofaccounts }}</p>
+      <p class="heading">Miners</p>
+      <p class="title">{{ miners }}</p>
     </div>
   </div>
 </nav>
@@ -33,25 +33,25 @@
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">Rewards E-1</p>
-      <p class="title">{{ rewards_last_epoch }}</p>
+      <p class="title">{{ rewards_last_epoch | sep_int }}</p>
     </div>
   </div>
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">Proofs E-1</p>
-      <p class="title">{{ proofs_submitted_last_epoch }}</p>
+      <p class="title">{{ proofs_submitted_last_epoch | sep_int }}</p>
+    </div>
+  </div>
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">reward per proof E-1</p>
+      <p class="title">{{ reward_pp_last_epoch }}</p>
     </div>
   </div>
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">AVG Proofs E-1</p>
       <p class="title">{{ avg_proofs_mined_last_epoch }}</p>
-    </div>
-  </div>
-  <div class="level-item has-text-centered column">
-    <div>
-      <p class="heading">Ratio</p>
-      <p class="title">{{ reward_pp_last_epoch }}</p>
     </div>
   </div>
 </nav>
@@ -109,7 +109,8 @@
               fill: false,
               lineTension: 0,
               borderColor: 'rgba(10, 10, 255, 0.8)',
-              yAxisID: 'y'
+              yAxisID: 'y',
+              hidden: true,
             },
             {
               label: "total reward",
@@ -124,7 +125,7 @@
               data: amtpp_lst_overall_chart,
               fill: false,
               lineTension: 0.5,
-              borderColor: 'rgba(0, 255, 0, 0.8)',
+              borderColor: 'rgba(128, 0, 128, 0.8)',
               yAxisID: 'y'
             }
           ]
@@ -169,10 +170,10 @@
       {% for row in rows %}
       <tr>
         <td class="px-1"><a href="{{ address_url + row.address }}" target="_blank"><u>{{ row.name }}</u></a></td>
-        <td class="px-1">{{ row.balance/1000 }}</td>
-        <td class="px-1">{{ row.towerheight }}</td>
-        <td class="px-1">{{ row.proofsinepoch }}</td>
-        <td class="px-1">{{ row.lastepochmined }}</td>
+        <td class="px-1">{{ (row.balance / 1000) | int | sep_int }}</td>
+        <td class="px-1">{{ row.towerheight | sep_int }}</td>
+        <td class="px-1">{{ row.proofsinepoch | sep_int }}</td>
+        <td class="px-1">{{ row.lastepochmined | sep_int }}</td>
         <td class="px-1">
           <canvas id="{{ 'chart_' + row.address }}" width="250" height="60"></canvas>
           <script>
@@ -200,7 +201,7 @@
                     label: "proofs",
                     data: val_lst_{{ row.address }},
                     fill: false,
-                    lineTension: 0.1,
+                    lineTension: 0.5,
                     borderColor: 'rgba(0, 0, 0, 0.8)'
                   }
                 ]
@@ -254,7 +255,7 @@
                     label: "rewards",
                     data: val_rw_lst_{{ row.address }},
                     fill: false,
-                    lineTension: 0.1,
+                    lineTension: 0.5,
                     borderColor: 'rgba(0, 0, 0, 0.8)'
                   }
                 ]

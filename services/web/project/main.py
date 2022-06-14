@@ -42,15 +42,15 @@ def dashboard():
 
         q_result = db.session.query(db.func.sum(AccountStat.balance)).scalar()
         if q_result:
-            totalbalance = round(q_result / 1000, 2)
+            totalbalance = round((q_result / 1000), 2)
 
         q_result = db.session.query(db.func.sum(AccountStat.towerheight)).scalar()
         if q_result:
             totalheight = q_result
 
-        q_result = db.session.query(db.func.count(AccountStat.address)).scalar()
+        q_result = db.engine.execute("select count(*) from accountstat where lastepochmined in (select max(lastepochmined) from accountstat)").scalar()
         if q_result:
-            nrofaccounts = q_result
+            miners = q_result
 
         q_result = db.session.query(db.func.max(AccountStat.updated_at)).scalar()
         if q_result:
@@ -74,7 +74,7 @@ def dashboard():
             proofs_submitted_last_epoch = q_result
 
         if rewards_last_epoch and proofs_submitted_last_epoch:
-            reward_pp_last_epoch = round(float(rewards_last_epoch) / float(proofs_submitted_last_epoch), 3)
+            reward_pp_last_epoch = round(float(rewards_last_epoch) / float(proofs_submitted_last_epoch), 2)
 
         q_result = db.engine.execute(f"select address, epoch, proofssubmitted from minerhistory where epoch > {prev_epoch} - 10 order by 1, 2 asc").all()
         if q_result:
@@ -108,12 +108,12 @@ def dashboard():
         if q_result:
             overal_perf_data = q_result
 
-        for ranknr, epoch, proofssubmitted, amount, amountpp, nrofaccounts in overal_perf_data:
+        for ranknr, epoch, proofssubmitted, amount, amountpp, acccount in overal_perf_data:
             chart_overall_perf["labels"].append(epoch)
             chart_overall_perf["proofs"].append(proofssubmitted)
             chart_overall_perf["amount"].append(amount / 1000)
             chart_overall_perf["amountpp"].append(amountpp / 1000)
-            chart_overall_perf["nrofaccounts"].append(nrofaccounts)
+            chart_overall_perf["nrofaccounts"].append(acccount)
 
     except Exception as e:
         print(f"{e}")
@@ -121,10 +121,10 @@ def dashboard():
     return render_template('dashboard.html',
                            name=current_user.name,
                            rows=rows,
-                           totalbalance=totalbalance,
+                           totalbalance=int(totalbalance),
                            totalheight=totalheight,
                            lastupdate=lastupdate,
-                           nrofaccounts=nrofaccounts,
+                           miners=miners,
                            lastepochmined=lastepochmined,
                            avg_proofs_mined_last_epoch=avg_proofs_mined_last_epoch,
                            rewards_last_epoch=rewards_last_epoch,

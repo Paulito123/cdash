@@ -27,12 +27,18 @@ def create_app():
 
     @app.template_filter('to_cet')
     def datetimefilter(value):
+        """Converts a given UTC datetime into CET datetime"""
         format = "%Y-%m-%d %H:%M:%S"
         tz = timezone('Europe/Brussels')
         u = timezone('UTC')
         value = u.localize(value, is_dst=None).astimezone(utc)
         local_dt = value.astimezone(tz)
         return local_dt.strftime(format)
+
+    @app.template_filter('sep_int')
+    def sep_int(value):
+        """Applies thousands separator to numeric values"""
+        return '{:,}'.format(int(value))
 
     # blueprint for auth routes in our app
     from .auth import auth as auth_blueprint
