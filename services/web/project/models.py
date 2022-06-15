@@ -80,3 +80,35 @@ class ChainEvent(db.Model):
     recipient = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now())
+
+
+class Epoch(db.Model):
+    __tablename__ = "epoch"
+
+    id = db.Column(db.Integer, primary_key=True)
+    epoch = db.Column(db.Integer, nullable=False, unique=True)
+    timestamp = db.Column(db.DateTime, nullable=True)
+    height = db.Column(db.Integer, nullable=False)
+    miners = db.Column(db.Integer, nullable=True)
+    proofs = db.Column(db.Integer, nullable=True)
+    minerspayable = db.Column(db.Integer, nullable=True)
+    minerspayableproofs = db.Column(db.Integer, nullable=True)
+    validatorproofs = db.Column(db.Integer, nullable=True)
+    minerpaymenttotal = db.Column(db.Float, nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+
+class NetworkStat(db.Model):
+    __tablename__ = "networkstats"
+
+    id = db.Column(db.Integer, primary_key=True)
+    height = db.Column(db.Integer, nullable=False)
+    epoch = db.Column(db.Integer, nullable=False)
+    progress = db.Column(db.Float, nullable=False)
+    totalsupply = db.Column(db.Integer, nullable=False)
+    totaladdresses = db.Column(db.Integer, nullable=False)
+    totalminers = db.Column(db.Integer, nullable=False)
+    activeminers = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())

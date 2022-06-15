@@ -4,7 +4,7 @@ from sqlalchemy.exc import ProgrammingError
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from models import AccountStat, MinerHistory, PaymentEvent
+from models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch
 from database import session, engine
 from config import Config
 from datetime import datetime
@@ -94,7 +94,7 @@ def fetch_0l_table_data(
     return output_list
 
 
-def scrape():
+def scrape_0l_addresses():
     exec_host = 'chrome'
     with engine.connect() as connection:
         try:
@@ -204,6 +204,133 @@ def scrape():
             print(f"{e}")
 
 
+def scrape_0l_home():
+    exec_host = 'chrome'
+    try:
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("start-maximized")
+        chrome_options.add_argument("disable-infobars")
+        chrome_options.add_argument("--disable-extensions")
+
+        driver = webdriver.Remote(
+            command_executor=f'http://{exec_host}:4444/wd/hub',
+            options=chrome_options
+        )
+
+        try:
+            # fetch network stats
+            url = Config.BASE_URL
+            driver.get(url)
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[1]/span[1]/span")
+            height = int(tmp.text.replace(',', ''))
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[1]/span[2]/span")
+            epoch = int(tmp.text.replace(',', ''))
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[1]/span[3]/span")
+            progress = float(tmp.text.replace('%', ''))
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[3]/span[1]/span")
+            totalsupply = int(tmp.text.replace(',', ''))
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[3]/span[2]/span")
+            totaladdresses = int(tmp.text.replace(',', ''))
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[3]/span[3]/span")
+            totalminers = int(tmp.text.replace(',', ''))
+
+            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[3]/span[4]/span")
+            activeminers = int(tmp.text.replace(',', ''))
+
+            id = session.query(NetworkStat.id).first()
+            o = NetworkStat(
+                height=height,
+                epoch=epoch,
+                progress=progress,
+                totalsupply=totalsupply,
+                totaladdresses=totaladdresses,
+                totalminers=totalminers,
+                activeminers=activeminers)
+            if id:
+                o.id = id
+                session.merge(o)
+            else:
+                session.add(o)
+            session.commit()
+
+            #TODO: Message: stale element reference: element is not attached to the page document
+            #      (Session info: chrome=102.0.5005.61)
+
+
+            # fetch epoch data
+            url = Config.BASE_URL + "epochs"
+            driver.get(url)
+
+            xp_rows = "//div[contains(@class, 'epochsTable_inner__jRreG')]/div/div/div/div/div/div/table/tbody/tr"
+            xp_button_next = "//div[contains(@class, 'epochsTable_inner__jRreG')]/div/div/div/ul/li[@title='Next Page']/button"
+            data_name_list = ["epoch", "timestamp", "height", "miners", "proofs", "ppm", "minerspayable",
+                              "minerspayableproofs", "validatorproofs", "minerpaymenttotal"]
+            last_epoch = session.query(func.max(Epoch.epoch)).scalar()
+            last_known_kv = ['epoch', f'{last_epoch}'] if last_epoch else []
+            update_most_recent = True
+            table_data = fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_known_kv, update_most_recent)
+            for row in table_data:
+                epoch = int(row['epoch'])
+                id = session.query(Epoch.id).filter(Epoch.epoch == epoch).scalar()
+                height = int(row['height'])
+
+                # 5/28/2022, 5:48:04 PM
+                if len(row['timestamp']) > 0:
+                    timestamp = datetime.strptime(row['timestamp'], '%-m/%e/%Y, %-I:%M:%S %p')
+
+                if len(row['miners']) > 0:
+                    miners = int(row['miners'].replace(',', ''))
+
+                if len(row['proofs']) > 0:
+                    proofs = int(row['proofs'].replace(',', ''))
+
+                if len(row['minerspayable']) > 0:
+                    minerspayable = int(row['minerspayable'].replace(',', ''))
+
+                if len(row['minerspayableproofs']) > 0:
+                    minerspayableproofs = int(row['minerspayableproofs'].replace(',', ''))
+
+                if len(row['validatorproofs']) > 0:
+                    validatorproofs = int(row['validatorproofs'].replace(',', ''))
+
+                if len(row['minerpaymenttotal']) > 0:
+                    minerpaymenttotal = float(row['minerpaymenttotal'].replace(',', ''))
+
+                o = Epoch(
+                    epoch=epoch,
+                    timestamp=timestamp,
+                    height=height,
+                    miners=miners,
+                    proofs=proofs,
+                    minerspayable=minerspayable,
+                    minerspayableproofs=minerspayableproofs,
+                    validatorproofs=validatorproofs,
+                    minerpaymenttotal=minerpaymenttotal)
+
+                if id:
+                    o.id = id
+                    session.merge(o)
+                else:
+                    session.add(o)
+            session.commit()
+
+        except Exception as e:
+            print(f"{e}")
+        finally:
+            driver.quit()
+
+    except ProgrammingError:
+        print("Houston, we have a problem...")
+    except Exception as e:
+        print(f"{e}")
+
+
 if __name__ == "__main__":
     initial_sleep = int(Config.INITIAL_SLEEP_SECS)
     print(f"[{datetime.now()}] Waiting {initial_sleep} secs")
@@ -211,6 +338,7 @@ if __name__ == "__main__":
     sleepy_time = int(Config.SLEEP_MINS)
     while True:
         print(f"[{datetime.now()}] Begin crawling...")
-        scrape()
+        scrape_0l_home()
+        scrape_0l_addresses()
         print(f"[{datetime.now()}] End crawling. Sleep {sleepy_time} minutes.")
         sleep(60 * sleepy_time)
