@@ -25,8 +25,8 @@ def create_app():
         # since the user_id is just the primary key of our user table, use it in the query for the user
         return User.query.get(int(user_id))
 
-    @app.template_filter('to_cet')
-    def datetimefilter(value):
+    @app.template_filter('utc_to_cet')
+    def utc_to_cet(value):
         """Converts a given UTC datetime into CET datetime"""
         format = "%Y-%m-%d %H:%M:%S"
         tz = timezone('Europe/Brussels')
