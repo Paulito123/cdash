@@ -46,8 +46,11 @@
                             </a>
                             {% endif %}
                             {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('main.dashboard') }}" class="navbar-item">
-                                <strong>Dashboard</strong>
+                            <a href="{{ url_for('main.miners') }}" class="navbar-item">
+                                <strong>Miners</strong>
+                            </a>
+                            <a href="{{ url_for('main.network') }}" class="navbar-item">
+                                <strong>Network</strong>
                             </a>
                             <a href="{{ url_for('auth.logout') }}" class="navbar-item">
                                 Logout

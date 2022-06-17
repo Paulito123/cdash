@@ -1,9 +1,15 @@
-<!-- templates/dashboard.html -->
+<!-- templates/miners.html -->
 
 {% extends "base.html" %}
 
 {% block content %}
 <nav class="level">
+  <div class="level-item has-text-centered column">
+    <div>
+      <p class="heading">Current Epoch</p>
+      <p class="title">{{ currentepoch | sep_int }}</p>
+    </div>
+  </div>
   <div class="level-item has-text-centered column">
     <div>
       <p class="heading">Balance</p>
@@ -18,13 +24,7 @@
   </div>
   <div class="level-item has-text-centered column">
     <div>
-      <p class="heading">Current Epoch</p>
-      <p class="title">{{ lastepochmined | sep_int }}</p>
-    </div>
-  </div>
-  <div class="level-item has-text-centered column">
-    <div>
-      <p class="heading">Miners</p>
+      <p class="heading">Active miners</p>
       <p class="title">{{ miners }}</p>
     </div>
   </div>
@@ -134,18 +134,18 @@
           scales:{
             y: {
               ticks: {
-                  stepSize: 1
+                  stepSize: 0.5
               },
-              position: 'right',
+              position: 'left',
               grid: {
                 display: false,
               }
             },
             y1: {
               ticks: {
-                  stepSize: 0.01
+                  stepSize: 1
               },
-              position: 'left'
+              position: 'right'
             }
           },
           responsive: false,
@@ -281,7 +281,7 @@
             });
           </script>
         </td>
-        <td class="px-1">{{ row.updated_at|to_cet }}</td>
+        <td class="px-1">{{ row.updated_at | utc_to_cet }}</td>
       </tr>
       {% endfor %}
     </table>

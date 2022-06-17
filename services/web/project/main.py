@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from .models import AccountStat, MinerHistory, PaymentEvent
+from .models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch
 from .config import Config
 from . import db
+from datetime import datetime
 
 main = Blueprint('main', __name__)
 
@@ -16,16 +17,16 @@ def index():
     return render_template('index.html', name=name)
 
 
-@main.route('/dashboard')
+@main.route('/miners')
 @login_required
-def dashboard():
+def miners():
     address_url = Config.BASE_URL + "address/"
     rows = []
     totalbalance = 0
     totalheight = 0
-    nrofaccounts = 0
     lastupdate = 0
-    lastepochmined = 0
+    currentepoch = 0
+    miners = 0
     avg_proofs_mined_last_epoch = 0
     rewards_last_epoch = 0
     proofs_submitted_last_epoch = 0
@@ -48,18 +49,18 @@ def dashboard():
         if q_result:
             totalheight = q_result
 
-        q_result = db.engine.execute("select count(*) from accountstat where lastepochmined in (select max(lastepochmined) from accountstat)").scalar()
+        q_result = db.session.query(db.func.max(NetworkStat.epoch)).scalar()
+        if q_result:
+            currentepoch = q_result
+            prev_epoch = currentepoch - 1
+
+        q_result = db.engine.execute(f"select count(*) from accountstat where lastepochmined = {currentepoch}").scalar()
         if q_result:
             miners = q_result
 
         q_result = db.session.query(db.func.max(AccountStat.updated_at)).scalar()
         if q_result:
             lastupdate = q_result
-
-        q_result = db.session.query(db.func.max(AccountStat.lastepochmined)).scalar()
-        if q_result:
-            lastepochmined = q_result
-            prev_epoch = lastepochmined - 1
 
         q_result = db.engine.execute(f"select avg(proofssubmitted) as average from minerhistory where epoch = {prev_epoch}").scalar()
         if q_result:
@@ -111,21 +112,21 @@ def dashboard():
         for ranknr, epoch, proofssubmitted, amount, amountpp, acccount in overal_perf_data:
             chart_overall_perf["labels"].append(epoch)
             chart_overall_perf["proofs"].append(proofssubmitted)
-            chart_overall_perf["amount"].append(amount / 1000)
-            chart_overall_perf["amountpp"].append(amountpp / 1000)
+            chart_overall_perf["amount"].append(int(amount / 1000))
+            chart_overall_perf["amountpp"].append(round(amountpp / 1000, 2))
             chart_overall_perf["nrofaccounts"].append(acccount)
 
     except Exception as e:
         print(f"{e}")
 
-    return render_template('dashboard.html',
+    return render_template('miners.html',
                            name=current_user.name,
                            rows=rows,
                            totalbalance=int(totalbalance),
                            totalheight=totalheight,
                            lastupdate=lastupdate,
                            miners=miners,
-                           lastepochmined=lastepochmined,
+                           currentepoch=currentepoch,
                            avg_proofs_mined_last_epoch=avg_proofs_mined_last_epoch,
                            rewards_last_epoch=rewards_last_epoch,
                            address_url=address_url,
@@ -134,3 +135,62 @@ def dashboard():
                            proofs_submitted_last_epoch=proofs_submitted_last_epoch,
                            reward_pp_last_epoch=reward_pp_last_epoch,
                            chart_overall_perf=chart_overall_perf)
+
+
+@main.route('/network')
+@login_required
+def network():
+    netstats = []
+    chart_epoch = {"epoch": [], "height": [], "proofs": [], "minerpaymenttotal": [], "miners": [], "minerspayable": [], "minerspayableproofs": [], "timestamp": [], "validatorproofs": [], "updated_at": []}
+
+    try:
+        netstats = db.session.query(
+            NetworkStat.epoch,
+            NetworkStat.height,
+            NetworkStat.progress,
+            NetworkStat.activeminers,
+            NetworkStat.totaladdresses,
+            NetworkStat.totalminers,
+            NetworkStat.totalsupply,
+            NetworkStat.updated_at).first()
+
+        cutoff = int(netstats['epoch']) - 30
+
+        epochs = db.session.query(
+            Epoch.epoch,
+            Epoch.height,
+            Epoch.proofs,
+            Epoch.minerpaymenttotal,
+            Epoch.miners,
+            Epoch.minerspayable,
+            Epoch.minerspayableproofs,
+            Epoch.timestamp,
+            Epoch.validatorproofs,
+            Epoch.updated_at).filter(Epoch.epoch >= cutoff).order_by(Epoch.epoch).all()
+
+        for epoch, height, proofs, minerpaymenttotal, miners, minerspayable, minerspayableproofs, timestamp, validatorproofs, updated_at in epochs:
+            chart_epoch["epoch"].append(epoch)
+            chart_epoch["height"].append(height)
+            proofs_safe = proofs if proofs else 0
+            chart_epoch["proofs"].append(proofs_safe)
+            minerpaymenttotal_safe = minerpaymenttotal if minerpaymenttotal else 0
+            chart_epoch["minerpaymenttotal"].append(minerpaymenttotal_safe)
+            miners_safe = miners if miners else 0
+            chart_epoch["miners"].append(miners_safe)
+            minerspayable_safe = minerspayable if minerspayable else 0
+            chart_epoch["minerspayable"].append(minerspayable_safe)
+            minerspayableproofs_safe = minerspayableproofs if minerspayableproofs else 0
+            chart_epoch["minerspayableproofs"].append(minerspayableproofs_safe)
+            timestamp_safe = timestamp.strftime("%m/%d/%Y, %H:%M:%S") if timestamp else '0'
+            chart_epoch["timestamp"].append(timestamp_safe)
+            validatorproofs_safe = validatorproofs if validatorproofs else '0'
+            chart_epoch["validatorproofs"].append(validatorproofs_safe)
+            chart_epoch["updated_at"].append(updated_at.strftime("%m/%d/%Y, %H:%M:%S"))
+
+    except Exception as e:
+        print(f"[{datetime.now()}]:[ERROR]:{e}")
+
+    return render_template('network.html',
+                           name=current_user.name,
+                           netstats=netstats,
+                           chart_epoch=chart_epoch)

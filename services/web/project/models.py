@@ -100,7 +100,7 @@ class Epoch(db.Model):
 
 
 class NetworkStat(db.Model):
-    __tablename__ = "networkstats"
+    __tablename__ = "networkstat"
 
     id = db.Column(db.Integer, primary_key=True)
     height = db.Column(db.Integer, nullable=False)

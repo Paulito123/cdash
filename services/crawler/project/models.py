@@ -93,7 +93,7 @@ class Epoch(Base):
 
 
 class NetworkStat(Base):
-    __tablename__ = "networkstats"
+    __tablename__ = "networkstat"
 
     id = Column(Integer, primary_key=True)
     height = Column(Integer, nullable=False)
