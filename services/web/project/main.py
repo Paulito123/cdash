@@ -32,7 +32,7 @@ def miners():
     proofs_submitted_last_epoch = 0
     reward_pp_last_epoch = 0
     chart_epoch = {}
-    chart_reward = {} # , , ,
+    chart_reward = {}
     chart_overall_perf = {"labels": [], "proofs": [], "amount": [], "amountpp": [], "nrofaccounts": []}
     overal_perf_data = []
     prev_epoch = 0
@@ -113,7 +113,7 @@ def miners():
         for epoch, proofssubmitted, amount, nrofaccounts in overal_perf_data:
             chart_overall_perf["labels"].append(epoch)
             chart_overall_perf["proofs"].append(proofssubmitted)
-            chart_overall_perf["amount"].append(int(amount/1000))
+            chart_overall_perf["amount"].append(int(amount / 1000))
             chart_overall_perf["amountpp"].append(float((amount / proofssubmitted if proofssubmitted > 0 else 1) / 1000))
             chart_overall_perf["nrofaccounts"].append(int(nrofaccounts))
 
