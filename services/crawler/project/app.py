@@ -136,8 +136,6 @@ def fetch_epoch_data(
     # Wait for the page to load
     WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_rows))
     WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_button_next))
-    # print("wait 30 secs")
-    # WebDriverWait(driver, timeout=additional_wait_sec)
 
     # var used to keep track of when next button is disabled
     disabled = False
@@ -151,19 +149,10 @@ def fetch_epoch_data(
 
     # Crawling table pages
     while not disabled:
-        # get table rows by xpath
-        # WebDriverWait(driver, timeout=additional_wait_sec)
-        # print("wait 5 secs")
+        # take time for page to load
         sleep(5)
-        # WebDriverWait(driver, timeout=15)
-        # print(f"[{datetime.now()}] wait 5 secs")
-        # driver.implicitly_wait(5)
-        # WebDriverWait(driver, timeout=15).until(EC.visibility_of_element_located((By.XPATH, xp_rows)))
-        # print(f"[{datetime.now()}] fetch rows")
+        # get table rows by xpath
         rows = driver.find_elements(By.XPATH, xp_rows)
-        # print(rows)
-
-        # print(f"[{datetime.now()}] cnt={cnt}")
 
         # iterate data row by row
         for row in rows:
@@ -178,7 +167,6 @@ def fetch_epoch_data(
             # iterate columns
             col_index = 0
             output_dict = {}
-            # print("start iterating columns...")
             for data_name in data_name_list:
                 v = row.find_elements(By.TAG_NAME, "td")[col_index]
                 output_dict[f"{data_name}"] = f"{v.text}"
@@ -195,18 +183,10 @@ def fetch_epoch_data(
             break
 
         # click and check status of the next button to determine if all data is loaded
-        # print("find button")
         button_next = driver.find_element(By.XPATH, xp_button_next)
-        # print('innerHTML = ' + button_next.get_attribute('innerHTML'))
-        # print("check if button disabled")
         disabled = button_next.get_property('disabled')
-        # print("Click button")
         button_next.click()
-        # print(f"[{datetime.now()}] sleep 5 secs")
         sleep(5)
-        # print("Wait for staleness")
-
-        # WebDriverWait(driver, timeout=15).until(EC.presence_of_element_located((By.XPATH, xp_rows)))
 
     return output_list
 
@@ -371,7 +351,7 @@ def scrape_0l_home():
                 totalminers=totalminers,
                 activeminers=activeminers)
             if nid:
-                o.id = nid
+                o.id = nid[0]
                 session.merge(o)
             else:
                 session.add(o)
