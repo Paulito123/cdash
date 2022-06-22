@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from .models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch
+from .models import AccountStat, NetworkStat, Epoch
 from .config import Config
 from . import db
 from datetime import datetime
@@ -67,11 +67,11 @@ def miners():
         if q_result:
             avg_proofs_mined_last_epoch = round(q_result, 2)
 
-        q_result = db.engine.execute("select sum(pe.amount) from paymentevent pe join (select address, max(height) as height from paymentevent group by address) pe2 on pe.address = pe2.address and pe.height = pe2.height").scalar()
+        q_result = db.engine.execute(f"select rewards from vw_epoch_rich where epoch = {prev_epoch}").scalar()
         if q_result:
             rewards_last_epoch = round(q_result / 1000, 2)
 
-        q_result = db.engine.execute(f"select sum(proofssubmitted) as proofs from minerhistory where epoch = {prev_epoch}").scalar()
+        q_result = db.engine.execute(f"select proofs from vw_epoch_rich where epoch = {prev_epoch}").scalar()
         if q_result:
             proofs_submitted_last_epoch = q_result
 
@@ -106,7 +106,7 @@ def miners():
                 data_dict["values"].append(amount)
                 chart_reward[address] = data_dict
 
-        q_result = db.engine.execute("with epochs as (select epoch, height, COALESCE(lag(height, 1) over (order by epoch desc), 9999999999) as pheight from epoch e join (select max(epoch) - 30 cutoff from epoch) e2 on e.epoch >= e2.cutoff), payments as (select height, sum(amount) as amount, count(distinct address) as nrofaccounts from paymentevent group by height), proofs as (select e.epoch, e.height, e.pheight, coalesce(sum(m.proofssubmitted), 0) as proofssubmitted from epochs e left join minerhistory m on m.epoch = e.epoch group by e.epoch, height, pheight), joined as (select pr.epoch, pr.proofssubmitted, sum(p.amount) as amount, sum(nrofaccounts) as nrofaccounts from proofs pr left join payments p on p.height >= pr.height and p.height < pr.pheight group by pr.epoch, pr.proofssubmitted), corrected as (select epoch, proofssubmitted, coalesce(lag(amount, 1) over (order by epoch desc), 0) as amount, coalesce(lag(nrofaccounts, 1) over (order by epoch desc), 0) as nrofaccounts from joined) select epoch, proofssubmitted, amount, nrofaccounts from corrected where epoch < (select max(epoch) from epoch) order by 1").all()
+        q_result = db.engine.execute(f"select epoch, proofs, rewards, accounts from vw_epoch_rich where epoch >= {prev_epoch} - {Config.CHART_EPOCHS_MINERS} and epoch < (select max(epoch) from epoch) order by 1").all()
         if q_result:
             overal_perf_data = q_result
 
@@ -155,7 +155,7 @@ def network():
             NetworkStat.totalsupply,
             NetworkStat.updated_at).first()
 
-        cutoff = int(netstats['epoch']) - 60
+        cutoff = int(netstats['epoch']) - Config.CHART_EPOCHS_NETWORK
 
         epochs = db.session.query(
             Epoch.epoch,
@@ -174,7 +174,7 @@ def network():
             chart_epoch["height"].append(height)
             proofs_safe = proofs if proofs else 0
             chart_epoch["proofs"].append(proofs_safe)
-            minerpaymenttotal_safe = minerpaymenttotal if minerpaymenttotal else 0
+            minerpaymenttotal_safe = round(minerpaymenttotal if minerpaymenttotal else 0, 0)
             chart_epoch["minerpaymenttotal"].append(minerpaymenttotal_safe)
             miners_safe = miners if miners else 0
             chart_epoch["miners"].append(miners_safe)

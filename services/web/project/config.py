@@ -9,3 +9,5 @@ class Config(object):
     STATIC_FOLDER = f"{os.getenv('APP_FOLDER')}/project/static"
     SECRET_KEY = f"{os.getenv('SECRET_KEY')}"
     BASE_URL = f"{os.getenv('BASE_URL')}"
+    CHART_EPOCHS_MINERS = 60
+    CHART_EPOCHS_NETWORK = 60
