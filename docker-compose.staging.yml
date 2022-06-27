@@ -83,7 +83,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ./.env.prod
+      - ./.env.prod.notifier
 
 volumes:
   postgres_data:
