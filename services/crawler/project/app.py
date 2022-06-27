@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch
-from database import session, engine
+from database import session
 from config import Config
 from datetime import datetime
 
