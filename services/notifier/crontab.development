@@ -1,0 +1,1 @@
+* * * * * /usr/src/app/project/job_postepoch.py >> /var/log/cron.log 2>&1

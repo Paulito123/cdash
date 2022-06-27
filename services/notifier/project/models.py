@@ -33,18 +33,6 @@ class MinerHistory(Base):
 
     __table_args__ = (UniqueConstraint('address', 'epoch', name='uc_address_epoch'),)
 
-    # def update(self):
-    #     mapped_values = {}
-    #     for item in MinerHistory.__dict__.iteritems():
-    #         field_name = item[0]
-    #         field_type = item[1]
-    #         is_column = isinstance(field_type, InstrumentedAttribute)
-    #         if is_column:
-    #             mapped_values[field_name] = getattr(self, field_name)
-    #
-    #     session.query(MinerHistory).filter(MinerHistory.id == self.id).update(mapped_values)
-    #     session.commit()
-
 
 class PaymentEvent(Base):
     __tablename__ = "paymentevent"

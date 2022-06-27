@@ -2,6 +2,8 @@
 .env.prod*
 .env.prod.db
 *.prod.yaml
+*.production
+*.sql
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

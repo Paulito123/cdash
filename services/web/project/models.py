@@ -112,3 +112,14 @@ class NetworkStat(db.Model):
     activeminers = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+
+class CronLog(db.Model):
+    __tablename__ = "cronlog"
+
+    id = db.Column(db.Integer, primary_key=True)
+    jobname = db.Column(db.String(500), nullable=True)
+    status = db.Column(db.String(100), nullable=True)
+    response = db.Column(db.String(2000), nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
