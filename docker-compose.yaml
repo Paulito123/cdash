@@ -3,6 +3,7 @@ version: '3.8'
 services:
 
   web:
+    container_name: cdash-web
     build: ./services/web
     command: python manage.py run -h 0.0.0.0
     volumes:
@@ -15,6 +16,7 @@ services:
       - db
 
   db:
+    container_name: cdash-db
     image: postgres:13-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
@@ -22,6 +24,7 @@ services:
       - ./.env.dev.db
 
   chrome:
+    container_name: cdash-chrome
     image: selenium/standalone-chrome:latest
     hostname: chrome
     privileged: true
@@ -30,12 +33,24 @@ services:
       - db
 
   crawler:
+    container_name: cdash-crawler
     build: ./services/crawler
     command: python project/app.py
     volumes:
       - ./services/crawler/:/usr/src/app/
     depends_on:
+      - db
       - chrome
+    env_file:
+      - ./.env.dev
+
+  notifier:
+    container_name: cdash-notifier
+    build: ./services/notifier
+    volumes:
+      - ./services/notifier/:/usr/src/app/
+    depends_on:
+      - db
     env_file:
       - ./.env.dev
 
