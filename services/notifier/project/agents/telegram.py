@@ -1,5 +1,4 @@
 import requests
-# from ..config import Config
 
 
 class Emoji:
@@ -20,6 +19,8 @@ class Emoji:
         "arrow_up": u'\U00002B06',
         "arrow_down": u'\U00002B07',
         "money_bag": u'\U0001F4B0',
+        "trophy": u'\U0001F3C6',
+        "builder": u'\U0001F477',
     }
 
     def print(self, emoji_name):
