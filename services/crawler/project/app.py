@@ -1,6 +1,7 @@
+import os
 from time import sleep
 from sqlalchemy import text, func
-from sqlalchemy.exc import ProgrammingError
+# from sqlalchemy.exc import ProgrammingError
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -8,6 +9,7 @@ from models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch
 from database import session
 from config import Config
 from datetime import datetime
+from agents import Emoji, Telegram
 
 
 def date_format_pad_awan(strdate) -> str:
@@ -291,15 +293,36 @@ def scrape_0l_addresses():
                     session.add(o)
                 session.commit()
 
-            except Exception as e:
-                print(f"{e}")
+            except Exception as f:
+                error_message = f"[{datetime.now()}]:{f}"
+                if Config.ENABLE_TELEGRAM == "1":
+                    try:
+                        notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
+                        notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
+                        resp = notifier.send_message(notification).json()
+                        print(f"{resp}")
+
+                    except Exception as e:
+                        print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
+                else:
+                    print(error_message)
             finally:
                 driver.quit()
 
-    except ProgrammingError:
-        print("Try init DB!")
-    except Exception as e:
-        print(f"{e}")
+    except Exception as f:
+        error_message = f"[{datetime.now()}]:{f}"
+
+        if Config.ENABLE_TELEGRAM == "1":
+            try:
+                notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
+                notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
+                resp = notifier.send_message(notification).json()
+                print(f"{resp}")
+
+            except Exception as e:
+                print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
+        else:
+            print(error_message)
 
 
 def scrape_0l_home():
@@ -421,15 +444,35 @@ def scrape_0l_home():
                     session.add(o)
                 session.commit()
 
-        except Exception as e:
-            print(f"[{datetime.now()}]:[ERROR]:{e}")
+        except Exception as f:
+            error_message = f"[{datetime.now()}]:{f}"
+            if Config.ENABLE_TELEGRAM == "1":
+                try:
+                    notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
+                    notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
+                    resp = notifier.send_message(notification).json()
+                    print(f"{resp}")
+
+                except Exception as e:
+                    print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
+            else:
+                print(error_message)
         finally:
             driver.quit()
 
-    except ProgrammingError:
-        print(f"[{datetime.now()}]:[ERROR]:Bad programming ;)")
-    except Exception as e:
-        print(f"[{datetime.now()}]:[ERROR]:{e}")
+    except Exception as f:
+        error_message = f"[{datetime.now()}]:{f}"
+        if Config.ENABLE_TELEGRAM == "1":
+            try:
+                notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
+                notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
+                resp = notifier.send_message(notification).json()
+                print(f"{resp}")
+
+            except Exception as e:
+                print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
+        else:
+            print(error_message)
 
 
 if __name__ == "__main__":
