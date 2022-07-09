@@ -65,12 +65,12 @@ class ChainEvent(Base):
 
     id = Column(Integer, primary_key=True)
     address = Column(String(100), nullable=False)
-    height = Column(Integer, nullable=False, default=0)
-    timestamp = Column(DateTime, nullable=False, default=func.now())
-    type = Column(String(100), nullable=False, default="")
-    status = Column(String(100), nullable=False, default="")
-    sender = Column(String(100))
-    recipient = Column(String(100))
+    height = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, nullable=True)
+    type = Column(String(100), nullable=True)
+    status = Column(String(100), nullable=True)
+    sender = Column(String(100), nullable=True)
+    recipient = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -107,13 +107,15 @@ class NetworkStat(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
-class CronLog(Base):
-    __tablename__ = "cronlog"
+class EventLog(Base):
+    __tablename__ = "eventlog"
 
     id = Column(Integer, primary_key=True)
-    jobname = Column(String(500), nullable=True)
-    status = Column(String(100), nullable=True)
-    response = Column(String(2000), nullable=True)
+    event_source = Column(String(500), nullable=True)
+    type = Column(String(100), nullable=True)
+    subject = Column(String(1000), nullable=True)
+    message = Column(String(5000), nullable=True)
+    response = Column(String(5000), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

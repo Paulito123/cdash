@@ -72,12 +72,12 @@ class ChainEvent(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     address = db.Column(db.String(100), nullable=False)
-    height = db.Column(db.Integer, nullable=False, default=0)
-    timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
-    type = db.Column(db.String(100), nullable=False, default="")
-    status = db.Column(db.String(100), nullable=False, default="")
-    sender = db.Column(db.String(100))
-    recipient = db.Column(db.String(100))
+    height = db.Column(db.Integer, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=True)
+    type = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.String(100), nullable=True)
+    sender = db.Column(db.String(100), nullable=True)
+    recipient = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now())
 
@@ -114,12 +114,14 @@ class NetworkStat(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
 
-class CronLog(db.Model):
-    __tablename__ = "cronlog"
+class EventLog(db.Model):
+    __tablename__ = "eventlog"
 
     id = db.Column(db.Integer, primary_key=True)
-    jobname = db.Column(db.String(500), nullable=True)
-    status = db.Column(db.String(100), nullable=True)
-    response = db.Column(db.String(2000), nullable=True)
+    event_source = db.Column(db.String(500), nullable=True)
+    type = db.Column(db.String(100), nullable=True)
+    subject = db.Column(db.String(1000), nullable=True)
+    message = db.Column(db.String(5000), nullable=True)
+    response = db.Column(db.String(5000), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())

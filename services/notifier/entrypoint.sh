@@ -12,6 +12,6 @@ echo "PostgreSQL started"
 echo "Wait for data: 10m"
 sleep 10m
 echo "Copying variables..."
-printenv | grep 'DATABASE_URL\|BOT_TOKEN\|CHAT_ID\|ENABLE_TELEGRAM'  > /etc/environment
+printenv | grep 'DATABASE_URL\|BOT_TOKEN\|CHAT_ID\|ENABLE_TELEGRAM\|ERROR_NOTIF_DELAY'  > /etc/environment
 echo "Starting cron..."
 cron -f

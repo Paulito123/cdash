@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from helper import convert_timezone
 from database import session, engine
-from models import CronLog
+from models import EventLog
 from agents import Emoji, Telegram
 from config import Config
 
@@ -12,8 +12,8 @@ from config import Config
 if Config.ENABLE_TELEGRAM == "1":
     try:
         epoch = engine.execute("select epoch, round(rewards / 1000, 0) from vw_epoch_rich where epoch = (select max(epoch) - 1 from networkstat)").one()
-        balance = engine.execute("select sum(balance) from accountstat").scalar()
-        balance_multiplier = int(int(balance) / 100000000)
+        balance = engine.execute("select sum(balance)/1000 from accountstat").scalar()
+        balance_multiplier = int(int(balance) / 100000)
         acc_stat_info = engine.execute("select count(a.*), max(a.updated_at), max(b.addresses) from accountstat a cross join (select count(distinct address) as addresses from accountstat) b where a.lastepochmined = (select max(epoch) from networkstat)").one()
         netw_stat_info = engine.execute("select epoch, totalsupply, activeminers from networkstat where id = 1").one()
 
@@ -34,10 +34,10 @@ if Config.ENABLE_TELEGRAM == "1":
                        f"Last data update: {convert_timezone(acc_stat_info[1])[:19]}\n"
 
         resp = notifier.send_message(notification).json()
-        status = "OK" if resp['ok'] == "True" else "ERROR"
+        type = "Notif daily status success" if resp['ok'] == "True" else "Notif daily status failed"
         jobname = os.path.basename(__file__)
 
-        o = CronLog(jobname=jobname, status=status, response=f"{resp}")
+        o = EventLog(event_source=jobname, type=type, message=notification, response=f"{resp}")
         session.add(o)
         session.commit()
 

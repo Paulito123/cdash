@@ -5,7 +5,7 @@ from sqlalchemy import text, func
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch
+from models import AccountStat, MinerHistory, PaymentEvent, NetworkStat, Epoch, ChainEvent, EventLog
 from database import session
 from config import Config
 from datetime import datetime
@@ -117,6 +117,52 @@ def fetch_0l_table_data(
     return output_list
 
 
+def fetch_0l_table_row(
+        driver,
+        xp_rows,
+        xp_button_next,
+        data_name_list) -> {}:
+    """
+    :param driver: selenium driver
+    :param xp_rows: xpath to tr element of the data table
+    :param data_name_list: column names of data table
+    :return: a dictionary
+    """
+    output_row = {}
+
+    # Wait for the page to load
+    WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_rows))
+    WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_button_next))
+
+    # var used to keep track of loops
+    max_loops = 3
+
+    # get table rows by xpath
+    rows = driver.find_elements(By.XPATH, xp_rows)
+
+    # iterate data row by row
+    for row in rows:
+        if max_loops == 0:
+            break
+
+        # discard empty rows
+        if len(row.find_elements(By.TAG_NAME, "td")[0].text) == 0:
+            max_loops = max_loops - 1
+            continue
+
+        # iterate columns
+        col_index = 0
+        for data_name in data_name_list:
+            v = row.find_elements(By.TAG_NAME, "td")[col_index]
+
+            output_row[f"{data_name}"] = f"{v.text}"
+            col_index = col_index + 1
+
+        break
+
+    return output_row
+
+
 def fetch_epoch_data(
         driver,
         xp_rows,
@@ -195,10 +241,8 @@ def fetch_epoch_data(
 
 def scrape_0l_addresses():
     exec_host = 'chrome'
-    # with engine.connect() as connection:
     try:
         # Fetch the account list
-        # accounts = connection.execute(text("select address from accountstat"))
         accounts = session.query(AccountStat).all()
 
         # iterate account list
@@ -275,6 +319,35 @@ def scrape_0l_addresses():
                         session.add(o)
                 session.commit()
 
+                # fetch miner proofs
+                xp_rows = "//div[contains(@class, 'transactionsTable_inner__BVmAi')]/div[2]/div/div/div/div/div/table/tbody/tr"
+                xp_button_next = "//div[contains(@class, 'transactionsTable_inner__BVmAi')]/div[2]/div/div/ul/li[@title='Next Page']/button"
+
+                data_name_list = ["height", "timestamp", "type", "status", "sender", "recipient"]
+                table_row = fetch_0l_table_row(driver, xp_rows, xp_button_next, data_name_list)
+
+                timestamp = None
+                if len(table_row['timestamp']) > 0:
+                    timestamp = datetime.strptime(date_format_pad_awan(table_row['timestamp']), '%m/%d/%Y, %H:%M:%S %p')
+
+                chainevent_id = session.query(ChainEvent.id).filter(ChainEvent.type == 'Miner Proof', ChainEvent.height == table_row['height'], ChainEvent.address == account.address).scalar()
+
+                o = ChainEvent(
+                    address=address.text,
+                    height=int(table_row['height']),
+                    timestamp=timestamp,
+                    type=table_row['type'],
+                    status=table_row['status'],
+                    sender=table_row['sender'],
+                    recipient=table_row['recipient'])
+
+                if chainevent_id:
+                    o.id = chainevent_id
+                    session.merge(o)
+                else:
+                    session.add(o)
+                session.commit()
+
                 # fetch payment events
                 xp_rows = "//div[contains(@class, 'eventsTable_inner__HsGHV')]/div[2]/div/div/div/div/div/table/tbody/tr"
                 xp_button_next = "//div[contains(@class, 'eventsTable_inner__HsGHV')]/div[2]/div/div/ul/li[@title='Next Page']/button"
@@ -294,35 +367,30 @@ def scrape_0l_addresses():
                 session.commit()
 
             except Exception as f:
-                error_message = f"[{datetime.now()}]:{f}"
-                if Config.ENABLE_TELEGRAM == "1":
-                    try:
-                        notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
-                        notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
-                        resp = notifier.send_message(notification).json()
-                        print(f"{resp}")
-
-                    except Exception as e:
-                        print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
-                else:
-                    print(error_message)
+                error_message = f"[{datetime.now()}]:{f}"[:5000]
+                print(len(error_message))
+                try:
+                    jobname = os.path.basename(__file__)[:500]
+                    o = EventLog(event_source=jobname, type="Application error 2", message=error_message)
+                    session.add(o)
+                    session.commit()
+                except Exception as e:
+                    print(f"{error_message}")
+                    print(f"{e}")
             finally:
                 driver.quit()
 
     except Exception as f:
-        error_message = f"[{datetime.now()}]:{f}"
-
-        if Config.ENABLE_TELEGRAM == "1":
-            try:
-                notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
-                notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
-                resp = notifier.send_message(notification).json()
-                print(f"{resp}")
-
-            except Exception as e:
-                print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
-        else:
-            print(error_message)
+        error_message = f"[{datetime.now()}]:{f}"[:5000]
+        print(len(error_message))
+        try:
+            jobname = os.path.basename(__file__)[:500]
+            o = EventLog(event_source=jobname, type="Application error 1", message=error_message)
+            session.add(o)
+            session.commit()
+        except Exception as e:
+            print(f"{error_message}")
+            print(f"{e}")
 
 
 def scrape_0l_home():
@@ -445,34 +513,30 @@ def scrape_0l_home():
                 session.commit()
 
         except Exception as f:
-            error_message = f"[{datetime.now()}]:{f}"
-            if Config.ENABLE_TELEGRAM == "1":
-                try:
-                    notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
-                    notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
-                    resp = notifier.send_message(notification).json()
-                    print(f"{resp}")
-
-                except Exception as e:
-                    print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
-            else:
-                print(error_message)
+            error_message = f"[{datetime.now()}]:{f}"[:5000]
+            print(len(error_message))
+            try:
+                jobname = os.path.basename(__file__)[:500]
+                o = EventLog(event_source=jobname, type="Application error 2", message=error_message)
+                session.add(o)
+                session.commit()
+            except Exception as e:
+                print(f"{error_message}")
+                print(f"{e}")
         finally:
             driver.quit()
 
     except Exception as f:
-        error_message = f"[{datetime.now()}]:{f}"
-        if Config.ENABLE_TELEGRAM == "1":
-            try:
-                notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
-                notification = f"{Emoji.print(Emoji, emoji_name='cross_red')}[ERROR]:\n\n{error_message}"
-                resp = notifier.send_message(notification).json()
-                print(f"{resp}")
-
-            except Exception as e:
-                print(f"[{datetime.now()}]:[ERROR]:\n{error_message}\n\n{e}")
-        else:
-            print(error_message)
+        error_message = f"[{datetime.now()}]:{f}"[:5000]
+        print(len(error_message))
+        try:
+            jobname = os.path.basename(__file__)[:500]
+            o = EventLog(event_source=jobname, type="Application error 1", message=error_message)
+            session.add(o)
+            session.commit()
+        except Exception as e:
+            print(f"{error_message}")
+            print(f"{e}")
 
 
 if __name__ == "__main__":
