@@ -411,7 +411,9 @@ def scrape_0l_home():
             url = Config.BASE_URL
             driver.get(url)
 
-            tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[1]/span[1]/span")
+            heightxpath = "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[1]/span[1]/span"
+            WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, heightxpath))
+            tmp = driver.find_element(By.XPATH, heightxpath)
             height = int(tmp.text.replace(',', ''))
 
             tmp = driver.find_element(By.XPATH, "//div[contains(@class, 'index_topStatsInner__YRWuI')]/div[1]/span[2]/span")
