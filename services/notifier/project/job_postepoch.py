@@ -11,11 +11,11 @@ from config import Config
 
 if Config.ENABLE_TELEGRAM == "1":
     try:
-        epoch = engine.execute("select epoch, round(rewards / 1000, 0) from vw_epoch_rich where epoch = (select max(epoch) - 1 from networkstat)").one()
+        epoch = engine.execute("select epoch, round(rewards / 1000, 0) from vw_epoch_rich where epoch = (select max(epoch) - 1 from networkstat)").first()
         balance = engine.execute("select sum(balance)/1000 from accountstat").scalar()
         balance_multiplier = int(int(balance) / 100000)
-        acc_stat_info = engine.execute("select count(a.*), max(a.updated_at), max(b.addresses) from accountstat a cross join (select count(distinct address) as addresses from accountstat) b where a.lastepochmined = (select max(epoch) from networkstat)").one()
-        netw_stat_info = engine.execute("select epoch, totalsupply, activeminers from networkstat where id = 1").one()
+        acc_stat_info = engine.execute("select count(a.*), max(a.updated_at), max(b.addresses) from accountstat a cross join (select count(distinct address) as addresses from accountstat) b where a.lastepochmined = (select max(epoch) from networkstat)").first()
+        netw_stat_info = engine.execute("select epoch, totalsupply, activeminers from networkstat where id = 1").first()
 
         notifier = Telegram(Config.BOT_TOKEN, Config.CHAT_ID)
         notification = f"{Emoji.print(Emoji, emoji_name='check')}[DAILY UPDATE]{Emoji.print(Emoji, emoji_name='chart')}\n" \
@@ -32,9 +32,8 @@ if Config.ENABLE_TELEGRAM == "1":
                        f"Rewards received E-1: {'{:,}'.format(int(epoch[1]))}\n" \
                        f"Active miners: {acc_stat_info[0]}/{acc_stat_info[2]}\n" \
                        f"Last data update: {convert_timezone(acc_stat_info[1])[:19]}\n"
-
         resp = notifier.send_message(notification).json()
-        type = "Notif daily status success" if resp['ok'] == "True" else "Notif daily status failed"
+        type = f"Notif daily status {'success' if resp['ok'] else 'failed'}"
         jobname = os.path.basename(__file__)
 
         o = EventLog(event_source=jobname, type=type, message=notification, response=f"{resp}")
