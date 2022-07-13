@@ -9,8 +9,12 @@ done
 echo "PostgreSQL started"
 
 # Start cron
-echo "Wait for data: 10m"
-sleep 10m
+if [ "$CRON_ENV" = "production" ]
+then
+    echo "Wait for data: 10m"
+    sleep 10m
+fi
+
 echo "Copying variables..."
 printenv | grep 'DATABASE_URL\|BOT_TOKEN\|CHAT_ID\|ENABLE_TELEGRAM\|ERROR_NOTIF_DELAY'  > /etc/environment
 echo "Starting cron..."
