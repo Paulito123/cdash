@@ -1,2 +1,2 @@
-0,10,20,30,40,50 * * * * /usr/src/app/project/job_postepoch.py >> /var/log/cron.log 2>&1
-* * * * * /usr/src/app/project/job_error_notif.py >> /var/log/cron.log 2>&1
+* * * * * /usr/src/app/project/job_postepoch.py >> /var/log/cron.log 2>&1
+0 0 * * * /usr/src/app/project/job_error_notif.py >> /var/log/cron.log 2>&1
