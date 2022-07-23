@@ -12,6 +12,7 @@ class User(UserMixin, db.Model):
     password = db.Column(
         db.String(200), primary_key=False, unique=False, nullable=False
     )
+    totp = db.Column(db.String(40), unique=True, nullable=False)
 
     # def set_password(self, password):
     #     """Create hashed password."""

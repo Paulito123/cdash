@@ -1,0 +1,27 @@
+<!-- templates/otp.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">One Time Password</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" action="/otp">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="number" name="otp" placeholder="123456" autofocus="">
+                </div>
+            </div>
+
+            <button class="button is-block is-info is-large is-fullwidth">Send</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

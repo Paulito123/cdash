@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from flask_login import login_user, logout_user, login_required
+from pyotp import HOTP, TOTP
 from .models import User
 
 auth = Blueprint('auth', __name__)
@@ -26,9 +27,43 @@ def login_post():
         return redirect(url_for('auth.login'))
 
     # if the above check passes, then we know the user has the right credentials
-    login_user(user, remember=remember)
-    return redirect(url_for('main.miners'))
+    session['id'] = user.id
+    session['remember'] = remember
+    return redirect(url_for('auth.otp'))
 
+
+@auth.route('/otp')
+def otp():
+    user_id = session.get('id')
+
+    if not user_id:
+        return redirect(url_for('auth.login'))
+
+    return render_template('otp.html')
+
+
+@auth.route('/otp', methods=['POST'])
+def otp_post():
+    user_id = session.get('id')
+    remember = session.get('remember')
+    user = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        session['id'] = None
+        session['remember'] = None
+        return redirect(url_for('auth.login'))
+
+    otp_input = request.form.get('otp')
+    totp = TOTP(user.totp)
+    totp_now = totp.now()
+
+    if otp_input == totp_now:
+        login_user(user, remember=remember)
+        return redirect(url_for('main.miners'))
+    else:
+        session['id'] = None
+        session['remember'] = None
+        return redirect(url_for('auth.login'))
 
 @auth.route('/logout')
 @login_required
