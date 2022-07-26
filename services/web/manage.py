@@ -13,6 +13,7 @@ cli = FlaskGroup(app)
 
 @cli.command("create_db")
 def create_db():
+    db.engine.execute("DROP VIEW IF EXISTS vw_epoch_rich")
     db.drop_all()
     db.create_all()
     # views
@@ -27,7 +28,8 @@ def seed_db():
         u = User(
             email=f"{user['email']}",
             name=f"{user['name']}",
-            password=generate_password_hash(f"{user['paswd']}", method='sha256'))
+            password=generate_password_hash(f"{user['paswd']}", method='sha256'),
+            totp=f"{user['totp']}")
         db.session.add(u)
 
     counter = 1

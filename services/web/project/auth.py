@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from pyotp import HOTP, TOTP
 from .models import User
 
@@ -35,10 +35,10 @@ def login_post():
 @auth.route('/otp')
 def otp():
     user_id = session.get('id')
-
     if not user_id:
         return redirect(url_for('auth.login'))
-
+    elif current_user.is_authenticated:
+        return redirect(url_for('main.miners'))
     return render_template('otp.html')
 
 
@@ -61,12 +61,13 @@ def otp_post():
         login_user(user, remember=remember)
         return redirect(url_for('main.miners'))
     else:
-        session['id'] = None
-        session['remember'] = None
-        return redirect(url_for('auth.login'))
+        flash('OTP incorrect, please retry.')
+        return redirect(url_for('auth.otp'))
 
 @auth.route('/logout')
 @login_required
 def logout():
+    session['id'] = None
+    session['remember'] = None
     logout_user()
     return redirect(url_for('main.index'))
