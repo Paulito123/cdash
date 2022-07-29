@@ -69,7 +69,7 @@ def miners():
 
         q_result = db.engine.execute(f"select rewards from vw_epoch_rich where epoch = {prev_epoch}").scalar()
         if q_result:
-            rewards_last_epoch = round(q_result / 1000, 2)
+            rewards_last_epoch = round(q_result, 2)
 
         q_result = db.engine.execute(f"select proofs from vw_epoch_rich where epoch = {prev_epoch}").scalar()
         if q_result:
@@ -92,7 +92,7 @@ def miners():
                 data_dict["values"].append(proofs)
                 chart_epoch[address] = data_dict
 
-        q_result = db.engine.execute("select address, amount / 1000 as amount, ranknr from (select address, amount, rank() over (partition by address order by address, height desc) ranknr from paymentevent) pe where ranknr <= 10 order by 1, 3 desc").all()
+        q_result = db.engine.execute("select address, amount, ranknr from (select address, amount, rank() over (partition by address order by address, height desc) ranknr from paymentevent) pe where ranknr <= 10 order by 1, 3 desc").all()
         if q_result:
             payment_events = q_result
 
@@ -113,8 +113,8 @@ def miners():
         for epoch, proofssubmitted, amount, nrofaccounts in overal_perf_data:
             chart_overall_perf["labels"].append(epoch)
             chart_overall_perf["proofs"].append(proofssubmitted)
-            chart_overall_perf["amount"].append(int(amount / 1000))
-            chart_overall_perf["amountpp"].append(float((amount / proofssubmitted if proofssubmitted > 0 else 1) / 1000))
+            chart_overall_perf["amount"].append(int(amount))
+            chart_overall_perf["amountpp"].append(float((amount / proofssubmitted if proofssubmitted > 0 else 1)))
             chart_overall_perf["nrofaccounts"].append(int(nrofaccounts))
 
     except Exception as e:

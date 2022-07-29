@@ -57,13 +57,17 @@ class PaymentEvent(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     address = db.Column(db.String(100), nullable=False)
-    height = db.Column(db.Integer, nullable=False, default=0)
-    type = db.Column(db.String(100), nullable=False)
-    amount = db.Column(db.Integer, nullable=False, default=0)
+    amount = db.Column(db.Float, nullable=False, default=0)
+    currency = db.Column(db.String(16), nullable=False)
+    _metadata = db.Column(db.String(100), nullable=False)
     sender = db.Column(db.String(100))
     recipient = db.Column(db.String(100))
+    type = db.Column(db.String(100), nullable=False)
+    transactionkey = db.Column(db.String(100))
+    seq = db.Column(db.Integer, nullable=False)
+    height = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
 
 class ChainEvent(db.Model):

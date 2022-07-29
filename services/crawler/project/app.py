@@ -1,4 +1,5 @@
 import os
+import requests
 from time import sleep
 from sqlalchemy import text, func
 # from sqlalchemy.exc import ProgrammingError
@@ -27,6 +28,36 @@ def date_format_pad_awan(strdate) -> str:
         outputstr = outputstr[:12] + '0' + outputstr[12:]
 
     return outputstr
+
+
+def get_proofs_per_epoch(address):
+    try:
+        api_url = "https://0lexplorer.io:444/epochs/proofs/" + address
+        result = requests.get(api_url, timeout=10).json()
+    except Exception as e:
+        print(f"[{datetime.now()}]:{e}")
+        result = []
+    return result
+
+
+def get_chain_events(address, start, limit):
+    try:
+        api_url = f"https://0lexplorer.io/api/proxy/node/account-transactions?type=Miner&address={address}&start={start}&limit={limit}"
+        result = requests.get(api_url, timeout=10).json()
+    except Exception as e:
+        print(f"[{datetime.now()}]:{e}")
+        result = []
+    return result['result']
+
+
+def get_payment_events(address, start, limit):
+    try:
+        api_url = f"https://0lexplorer.io/api/proxy/node/events?address={address}&start={start}&limit={limit}"
+        result = requests.get(api_url, timeout=10).json()
+    except Exception as e:
+        print(f"[{datetime.now()}]:{e}")
+        result = []
+    return result['result']
 
 
 def fetch_0l_table_data(
@@ -117,50 +148,50 @@ def fetch_0l_table_data(
     return output_list
 
 
-def fetch_0l_table_row(
-        driver,
-        xp_rows,
-        xp_button_next,
-        data_name_list) -> {}:
-    """
-    :param driver: selenium driver
-    :param xp_rows: xpath to tr element of the data table
-    :param data_name_list: column names of data table
-    :return: a dictionary
-    """
-    output_row = {}
-
-    # Wait for the page to load
-    WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_rows))
-    WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_button_next))
-
-    # var used to keep track of loops
-    max_loops = 3
-
-    # get table rows by xpath
-    rows = driver.find_elements(By.XPATH, xp_rows)
-
-    # iterate data row by row
-    for row in rows:
-        if max_loops == 0:
-            break
-
-        # discard empty rows
-        if len(row.find_elements(By.TAG_NAME, "td")[0].text) == 0:
-            max_loops = max_loops - 1
-            continue
-
-        # iterate columns
-        col_index = 0
-        for data_name in data_name_list:
-            v = row.find_elements(By.TAG_NAME, "td")[col_index]
-
-            output_row[f"{data_name}"] = f"{v.text}"
-            col_index = col_index + 1
-
-        break
-
-    return output_row
+# def fetch_0l_table_row(
+#         driver,
+#         xp_rows,
+#         xp_button_next,
+#         data_name_list) -> {}:
+#     """
+#     :param driver: selenium driver
+#     :param xp_rows: xpath to tr element of the data table
+#     :param data_name_list: column names of data table
+#     :return: a dictionary
+#     """
+#     output_row = {}
+#
+#     # Wait for the page to load
+#     WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_rows))
+#     WebDriverWait(driver, timeout=30).until(lambda d: d.find_element(By.XPATH, xp_button_next))
+#
+#     # var used to keep track of loops
+#     max_loops = 3
+#
+#     # get table rows by xpath
+#     rows = driver.find_elements(By.XPATH, xp_rows)
+#
+#     # iterate data row by row
+#     for row in rows:
+#         if max_loops == 0:
+#             break
+#
+#         # discard empty rows
+#         if len(row.find_elements(By.TAG_NAME, "td")[0].text) == 0:
+#             max_loops = max_loops - 1
+#             continue
+#
+#         # iterate columns
+#         col_index = 0
+#         for data_name in data_name_list:
+#             v = row.find_elements(By.TAG_NAME, "td")[col_index]
+#
+#             output_row[f"{data_name}"] = f"{v.text}"
+#             col_index = col_index + 1
+#
+#         break
+#
+#     return output_row
 
 
 def fetch_epoch_data(
@@ -239,7 +270,7 @@ def fetch_epoch_data(
     return output_list
 
 
-def scrape_0l_addresses():
+def iterate_0l_addresses():
     exec_host = 'chrome'
     try:
         # Fetch the account list
@@ -294,23 +325,17 @@ def scrape_0l_addresses():
                         session.commit()
 
                 # fetch miner history
-                xp_rows = "//div[contains(@class, 'address_statsTablesContainer___HxvE')]/div[2]/div[2]/div/div/div/div/div/table/tbody/tr"
-                xp_button_next = "//div[contains(@class, 'address_statsTablesContainer___HxvE')]/div[2]/div[2]/div/div/ul/li[@title='Next Page']/button"
-                data_name_list = ["epoch", "proofssubmitted"]
-                last_epoch = session.query(func.max(MinerHistory.epoch)).filter(MinerHistory.address==account.address).scalar()
-                last_known_kv = ['epoch', f'{last_epoch}'] if last_epoch else []
-                update_most_recent = True
-                table_data = fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_known_kv, update_most_recent)
-                for row in table_data:
-                    epoch = int(row['epoch'])
+                result = get_proofs_per_epoch(account.address)
+                for epoch_obj in result:
+                    epoch = int(epoch_obj['epoch'])
                     id = session.query(MinerHistory.id).filter(
                         MinerHistory.address == account.address,
                         MinerHistory.epoch == epoch).scalar()
 
                     o = MinerHistory(
-                        address=address.text,
+                        address=account.address,
                         epoch=epoch,
-                        proofssubmitted=int(row['proofssubmitted']))
+                        proofssubmitted=int(epoch_obj['count']))
 
                     if id:
                         o.id = id
@@ -319,56 +344,42 @@ def scrape_0l_addresses():
                         session.add(o)
                 session.commit()
 
-                # fetch miner proofs
-                xp_rows = "//div[contains(@class, 'transactionsTable_inner__BVmAi')]/div[2]/div/div/div/div/div/table/tbody/tr"
-                xp_button_next = "//div[contains(@class, 'transactionsTable_inner__BVmAi')]/div[2]/div/div/ul/li[@title='Next Page']/button"
-
-                data_name_list = ["height", "timestamp", "type", "status", "sender", "recipient"]
-                table_row = fetch_0l_table_row(driver, xp_rows, xp_button_next, data_name_list)
-
-                timestamp = None
-                if len(table_row['timestamp']) > 0:
-                    timestamp = datetime.strptime(date_format_pad_awan(table_row['timestamp']), '%m/%d/%Y, %H:%M:%S %p')
-
-                chainevent_id = session.query(ChainEvent.id).filter(ChainEvent.type == 'Miner Proof', ChainEvent.height == table_row['height'], ChainEvent.address == account.address).scalar()
-
-                o = ChainEvent(
-                    address=address.text,
-                    height=int(table_row['height']),
-                    timestamp=timestamp,
-                    type=table_row['type'],
-                    status=table_row['status'],
-                    sender=table_row['sender'],
-                    recipient=table_row['recipient'])
-
-                if chainevent_id:
-                    o.id = chainevent_id
-                    session.merge(o)
-                else:
-                    session.add(o)
-                session.commit()
-
                 # fetch payment events
-                xp_rows = "//div[contains(@class, 'eventsTable_inner__HsGHV')]/div[2]/div/div/div/div/div/table/tbody/tr"
-                xp_button_next = "//div[contains(@class, 'eventsTable_inner__HsGHV')]/div[2]/div/div/ul/li[@title='Next Page']/button"
-                data_name_list = ["height", "type", "amount", "sender", "recipient"]
-                last_height = session.query(func.max(PaymentEvent.height)).filter(PaymentEvent.address==account.address).scalar()
-                last_known_kv = ['height', f'{last_height}'] if last_height else []
-                table_data = fetch_0l_table_data(driver, xp_rows, xp_button_next, data_name_list, last_known_kv)
-                for row in table_data:
-                    o = PaymentEvent(
-                        address=address.text,
-                        height=int(row['height']),
-                        type=row['type'],
-                        amount=int(float(row['amount'].replace(',', '')) * 1000),
-                        sender=row['sender'],
-                        recipient=row['recipient'])
-                    session.add(o)
-                session.commit()
+                more_to_load = True
+                batch_size = 1000
+                while more_to_load:
+                    max_seq = session.query(func.max(PaymentEvent.seq)).filter(PaymentEvent.address == account.address).scalar()
+                    max_seq = max_seq if max_seq else 0
+                    result = get_payment_events(account.address, max_seq, batch_size)
+                    for pe_obj in result:
+                        pe_id = session.query(PaymentEvent.id).filter(PaymentEvent.address == account.address, PaymentEvent.seq == int(pe_obj['sequence_number'])).scalar()
+
+                        o = PaymentEvent(
+                            address=address.text,
+                            amount=float(pe_obj['data']['amount']['amount']) / 1000000,
+                            currency=pe_obj['data']['amount']['currency'],
+                            _metadata=pe_obj['data']['metadata'],
+                            sender=pe_obj['data']['sender'],
+                            recipient=pe_obj['data']['receiver'],
+                            type=pe_obj['data']['type'],
+                            transactionkey=pe_obj['key'],
+                            seq=int(pe_obj['sequence_number']),
+                            height=int(pe_obj['transaction_version'])
+                            )
+
+                        if pe_id:
+                            o.id = pe_id
+                            session.merge(o)
+                        else:
+                            session.add(o)
+
+                    session.commit()
+
+                    if len(result) < batch_size:
+                        more_to_load = False
 
             except Exception as f:
                 error_message = f"[{datetime.now()}]:{f}"[:5000]
-                print(len(error_message))
                 try:
                     jobname = os.path.basename(__file__)[:500]
                     o = EventLog(event_source=jobname, type="Application error 2", message=error_message)
@@ -382,7 +393,6 @@ def scrape_0l_addresses():
 
     except Exception as f:
         error_message = f"[{datetime.now()}]:{f}"[:5000]
-        print(len(error_message))
         try:
             jobname = os.path.basename(__file__)[:500]
             o = EventLog(event_source=jobname, type="Application error 1", message=error_message)
@@ -516,7 +526,6 @@ def scrape_0l_home():
 
         except Exception as f:
             error_message = f"[{datetime.now()}]:{f}"[:5000]
-            print(len(error_message))
             try:
                 jobname = os.path.basename(__file__)[:500]
                 o = EventLog(event_source=jobname, type="Application error 2", message=error_message)
@@ -530,7 +539,6 @@ def scrape_0l_home():
 
     except Exception as f:
         error_message = f"[{datetime.now()}]:{f}"[:5000]
-        print(len(error_message))
         try:
             jobname = os.path.basename(__file__)[:500]
             o = EventLog(event_source=jobname, type="Application error 1", message=error_message)
@@ -547,8 +555,9 @@ if __name__ == "__main__":
     sleep(initial_sleep)
     sleepy_time = int(Config.SLEEP_MINS)
     while True:
-        print(f"[{datetime.now()}] Begin crawling...")
+        print(f"[{datetime.now()}] Begin crawling 0L home...")
         scrape_0l_home()
-        scrape_0l_addresses()
+        print(f"[{datetime.now()}] Begin crawling addresses...")
+        iterate_0l_addresses()
         print(f"[{datetime.now()}] End crawling. Sleep {sleepy_time} minutes.")
         sleep(60 * sleepy_time)

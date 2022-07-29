@@ -51,11 +51,15 @@ class PaymentEvent(Base):
 
     id = Column(Integer, primary_key=True)
     address = Column(String(100), nullable=False)
-    height = Column(Integer, nullable=False, default=0)
-    type = Column(String(100), nullable=False)
-    amount = Column(Integer, nullable=False, default=0)
+    amount = Column(Float, nullable=False, default=0)
+    currency = Column(String(16), nullable=False)
+    _metadata = Column(String(100), nullable=False)
     sender = Column(String(100))
     recipient = Column(String(100))
+    type = Column(String(100), nullable=False)
+    transactionkey = Column(String(100))
+    seq = Column(Integer, nullable=False)
+    height = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
