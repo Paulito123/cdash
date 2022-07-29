@@ -64,6 +64,7 @@ def otp_post():
         flash('OTP incorrect, please retry.')
         return redirect(url_for('auth.otp'))
 
+
 @auth.route('/logout')
 @login_required
 def logout():
