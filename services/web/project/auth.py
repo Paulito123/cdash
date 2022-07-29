@@ -2,13 +2,15 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from pyotp import HOTP, TOTP
 from .models import User
+from .config import Config
 
 auth = Blueprint('auth', __name__)
+sess_timeout_secs = (Config.SESS_TIMEOUT * 60) + 5
 
 
 @auth.route('/login')
 def login():
-    return render_template('login.html')
+    return render_template('login.html', sess_timeout=sess_timeout_secs)
 
 
 @auth.route('/login', methods=['POST'])
@@ -39,7 +41,7 @@ def otp():
         return redirect(url_for('auth.login'))
     elif current_user.is_authenticated:
         return redirect(url_for('main.miners'))
-    return render_template('otp.html')
+    return render_template('otp.html', sess_timeout=sess_timeout_secs)
 
 
 @auth.route('/otp', methods=['POST'])

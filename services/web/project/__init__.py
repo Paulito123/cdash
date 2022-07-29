@@ -1,7 +1,9 @@
-from flask import Flask
+from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from pytz import timezone, utc
+from datetime import timedelta
+from .config import Config
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
@@ -16,9 +18,17 @@ def create_app():
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
+    login_manager.session_protection = "strong"
+    login_manager.login_message = u"Please login to access area 51."
+    login_manager.login_message_category = "info"
     login_manager.init_app(app)
 
     from .models import User
+
+    @app.before_request
+    def before_request():
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(minutes=Config.SESS_TIMEOUT)
 
     @login_manager.user_loader
     def load_user(user_id):

@@ -6,6 +6,7 @@ from . import db
 from datetime import datetime
 
 main = Blueprint('main', __name__)
+sess_timeout_secs = (Config.SESS_TIMEOUT * 60) + 5
 
 
 @main.route('/')
@@ -14,7 +15,7 @@ def index():
         name = current_user.name
     else:
         name = ""
-    return render_template('index.html', name=name)
+    return render_template('index.html', name=name, sess_timeout=sess_timeout_secs)
 
 
 @main.route('/miners')
@@ -121,6 +122,7 @@ def miners():
         print(f"{e}")
 
     return render_template('miners.html',
+                           sess_timeout=sess_timeout_secs,
                            name=current_user.name,
                            rows=rows,
                            totalbalance=totalbalance,
@@ -192,6 +194,7 @@ def network():
         print(f"[{datetime.now()}]:[ERROR]:{e}")
 
     return render_template('network.html',
+                           sess_timeout=sess_timeout_secs,
                            name=current_user.name,
                            netstats=netstats,
                            chart_epoch=chart_epoch)

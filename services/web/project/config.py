@@ -11,3 +11,4 @@ class Config(object):
     BASE_URL = f"{os.getenv('BASE_URL')}"
     CHART_EPOCHS_MINERS = 60
     CHART_EPOCHS_NETWORK = 60
+    SESS_TIMEOUT = int(os.getenv('SESS_TIMEOUT'))
