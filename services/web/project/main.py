@@ -143,7 +143,7 @@ def miners():
 @main.route('/network')
 @login_required
 def network():
-    netstats = []
+    netstats = {}
     chart_epoch = {"epoch": [], "height": [], "proofs": [], "minerpaymenttotal": [], "miners": [], "minerspayable": [], "minerspayableproofs": [], "timestamp": [], "validatorproofs": [], "updated_at": []}
 
     try:
@@ -157,38 +157,43 @@ def network():
             NetworkStat.totalsupply,
             NetworkStat.updated_at).first()
 
-        cutoff = int(netstats['epoch']) - Config.CHART_EPOCHS_NETWORK
+        if netstats:
 
-        epochs = db.session.query(
-            Epoch.epoch,
-            Epoch.height,
-            Epoch.proofs,
-            Epoch.minerpaymenttotal,
-            Epoch.miners,
-            Epoch.minerspayable,
-            Epoch.minerspayableproofs,
-            Epoch.timestamp,
-            Epoch.validatorproofs,
-            Epoch.updated_at).filter(Epoch.epoch >= cutoff).order_by(Epoch.epoch).all()
+            cutoff = int(netstats['epoch']) - Config.CHART_EPOCHS_NETWORK
 
-        for epoch, height, proofs, minerpaymenttotal, miners, minerspayable, minerspayableproofs, timestamp, validatorproofs, updated_at in epochs:
-            chart_epoch["epoch"].append(epoch)
-            chart_epoch["height"].append(height)
-            proofs_safe = proofs if proofs else 0
-            chart_epoch["proofs"].append(proofs_safe)
-            minerpaymenttotal_safe = round(minerpaymenttotal if minerpaymenttotal else 0, 0)
-            chart_epoch["minerpaymenttotal"].append(minerpaymenttotal_safe)
-            miners_safe = miners if miners else 0
-            chart_epoch["miners"].append(miners_safe)
-            minerspayable_safe = minerspayable if minerspayable else 0
-            chart_epoch["minerspayable"].append(minerspayable_safe)
-            minerspayableproofs_safe = minerspayableproofs if minerspayableproofs else 0
-            chart_epoch["minerspayableproofs"].append(minerspayableproofs_safe)
-            timestamp_safe = timestamp.strftime("%m/%d/%Y, %H:%M:%S") if timestamp else '0'
-            chart_epoch["timestamp"].append(timestamp_safe)
-            validatorproofs_safe = validatorproofs if validatorproofs else '0'
-            chart_epoch["validatorproofs"].append(validatorproofs_safe)
-            chart_epoch["updated_at"].append(updated_at.strftime("%m/%d/%Y, %H:%M:%S"))
+            epochs = db.session.query(
+                Epoch.epoch,
+                Epoch.height,
+                Epoch.proofs,
+                Epoch.minerpaymenttotal,
+                Epoch.miners,
+                Epoch.minerspayable,
+                Epoch.minerspayableproofs,
+                Epoch.timestamp,
+                Epoch.validatorproofs,
+                Epoch.updated_at).filter(Epoch.epoch >= cutoff).order_by(Epoch.epoch).all()
+
+            for epoch, height, proofs, minerpaymenttotal, miners, minerspayable, minerspayableproofs, timestamp, validatorproofs, updated_at in epochs:
+                chart_epoch["epoch"].append(epoch)
+                chart_epoch["height"].append(height)
+                proofs_safe = proofs if proofs else 0
+                chart_epoch["proofs"].append(proofs_safe)
+                minerpaymenttotal_safe = round(minerpaymenttotal if minerpaymenttotal else 0, 0)
+                chart_epoch["minerpaymenttotal"].append(minerpaymenttotal_safe)
+                miners_safe = miners if miners else 0
+                chart_epoch["miners"].append(miners_safe)
+                minerspayable_safe = minerspayable if minerspayable else 0
+                chart_epoch["minerspayable"].append(minerspayable_safe)
+                minerspayableproofs_safe = minerspayableproofs if minerspayableproofs else 0
+                chart_epoch["minerspayableproofs"].append(minerspayableproofs_safe)
+                timestamp_safe = timestamp.strftime("%m/%d/%Y, %H:%M:%S") if timestamp else '0'
+                chart_epoch["timestamp"].append(timestamp_safe)
+                validatorproofs_safe = validatorproofs if validatorproofs else '0'
+                chart_epoch["validatorproofs"].append(validatorproofs_safe)
+                chart_epoch["updated_at"].append(updated_at.strftime("%m/%d/%Y, %H:%M:%S"))
+        else:
+            # Default value when data is not yet available
+            netstats = {"epoch": 0, "height": 0, "progress": 0.0, "activeminers": 0, "totaladdresses": 0, "totalminers": 0, "totalsupply": 0, "updated_at": datetime. strptime("1900-01-01 00:00:00", '%Y-%m-%d %H:%M:%S')}
 
     except Exception as e:
         print(f"[{datetime.now()}]:[ERROR]:{e}")
