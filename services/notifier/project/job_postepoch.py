@@ -11,7 +11,7 @@ from config import Config
 
 if Config.ENABLE_TELEGRAM == "1":
     try:
-        epoch = engine.execute("select epoch, round(rewards, 0) from vw_epoch_rich where epoch = (select max(epoch) - 1 from networkstat)").first()
+        epoch = engine.execute("select epoch, rewards from vw_epoch_rich where epoch = (select max(epoch) - 1 from networkstat)").first()
         balance = engine.execute("select sum(balance)/1000 from accountstat").scalar()
         balance_multiplier = int(int(balance) / 100000)
         acc_stat_info = engine.execute("select count(a.*), max(a.updated_at), max(b.addresses) from accountstat a cross join (select count(distinct address) as addresses from accountstat) b where a.lastepochmined = (select max(epoch) from networkstat)").first()
