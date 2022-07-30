@@ -4,6 +4,9 @@ from .models import AccountStat, NetworkStat, Epoch
 from .config import Config
 from . import db
 from datetime import datetime
+from web3 import Web3
+from .tokens import get_token_details
+# import time, json
 
 main = Blueprint('main', __name__)
 sess_timeout_secs = (Config.SESS_TIMEOUT * 60) + 5
@@ -203,3 +206,55 @@ def network():
                            name=current_user.name,
                            netstats=netstats,
                            chart_epoch=chart_epoch)
+
+
+@main.route('/mychains')
+@login_required
+def mychains():
+    chain_list = [{"name": "bsc", "url": "https://bsc-dataseed.binance.org/"},
+                  {"name": "eth", "url": "https://mainnet.infura.io/v3/3b2863eb398844cca2ac969710a21c3e"}]
+    address_list = ["0xB3f9C642fB8B13CB101309c146aeA978468F5659", "0x3eDCb1Fe24B0c7E32e585D73509CDE339F7806e8",
+                    "0x306c899fD298159532eE79be196E0d2B48415DE8", "0xC5bE3f7A8c6cCAB3e35c471912609DaE9C060363",
+                    "0xA44EC3d2AD7F2473Daf83506e9bE5F52ea6280fb"]
+    balances = {
+        "bnb": 0,
+        "eth" : 0,
+        "agix" : 0,
+        "lmt" : 0,
+        "prq" : 0
+    }
+
+    for addr in address_list:
+        for chain in chain_list:
+            for symbol in balances.keys():
+                if symbol == "eth" and chain['name'] == "bsc":
+                    continue
+                elif symbol == "bnb" and chain['name'] == "eth":
+                    continue
+                elif (symbol == "eth" and chain['name'] == "eth") or \
+                        (symbol == "bnb" and chain['name'] == "bsc"):
+                    web3 = Web3(Web3.HTTPProvider(chain['url']))
+                    bal_int = web3.eth.get_balance(addr)
+                    balance = web3.fromWei(bal_int, 'ether')
+                    balances[symbol] = balances[symbol] + balance
+                elif chain['name'] == "eth":
+                    web3 = Web3(Web3.HTTPProvider(chain['url']))
+                    tok = get_token_details(symbol, chain['name'])
+                    if tok:
+                        token = web3.eth.contract(address=tok["address"], abi=tok["abi"])
+                        bal_int = token.functions.balanceOf(addr).call()
+                        balance = web3.fromWei(bal_int, 'ether')
+                        balances[symbol] = balances[symbol] + balance
+                else:
+                    web3 = Web3(Web3.HTTPProvider(chain['url']))
+                    tok = get_token_details(symbol, chain['name'])
+                    if tok:
+                        token = web3.eth.contract(address=tok["address"])
+                        bal_int = token.functions.balanceOf(addr).call()
+                        balance = web3.fromWei(bal_int, 'ether')
+                        balances[symbol] = balances[symbol] + balance
+
+    return render_template('mychains.html',
+                           sess_timeout=sess_timeout_secs,
+                           name=current_user.name,
+                           balances=balances)

@@ -6,3 +6,4 @@ psycopg2-binary==2.9.3
 Flask-Login==0.6.1
 pytz==2022.1
 pyotp==2.6.0
+web3==5.30.0

@@ -61,6 +61,13 @@
                                 Network
                                 {% endif %}
                             </a>
+                            <a href="{{ url_for('main.mychains') }}" class="navbar-item">
+                                {% if self._TemplateReference__context.name == 'mychains.html' %}
+                                <strong>My chains</strong>
+                                {% else %}
+                                My chains
+                                {% endif %}
+                            </a>
                             <a href="{{ url_for('auth.logout') }}" class="navbar-item">
                                 Logout
                             </a>
