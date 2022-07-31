@@ -5,7 +5,7 @@ from .models import User
 from .config import Config
 
 auth = Blueprint('auth', __name__)
-sess_timeout_secs = (Config.SESS_TIMEOUT * 60) + 5
+sess_timeout_secs = (Config.SESS_TIMEOUT_MINS * 60) + 5
 
 
 @auth.route('/login')

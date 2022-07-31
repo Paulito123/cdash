@@ -1,4 +1,5 @@
 import os
+import redis
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -11,4 +12,11 @@ class Config(object):
     BASE_URL = f"{os.getenv('BASE_URL')}"
     CHART_EPOCHS_MINERS = 60
     CHART_EPOCHS_NETWORK = 60
-    SESS_TIMEOUT = int(os.getenv('SESS_TIMEOUT'))
+    SESS_TIMEOUT_MINS = int(os.getenv('SESS_TIMEOUT_MINS'))
+    REDIS_URI = os.getenv("SESSION_REDIS")
+    SESSION_TYPE = "redis"
+    SESSION_REDIS = redis.from_url(REDIS_URI)
+    SESSION_USE_SIGNER = True
+    SESSION_PERMANENT = True
+    SESSION_COOKIE_SECURE = True
+    PERMANENT_SESSION_LIFETIME = int(os.getenv('SESS_TIMEOUT_MINS')) * 60

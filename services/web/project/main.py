@@ -5,8 +5,9 @@ from .config import Config
 from . import db
 from datetime import datetime
 
+
 main = Blueprint('main', __name__)
-sess_timeout_secs = (Config.SESS_TIMEOUT * 60) + 5
+sess_timeout_secs = (Config.SESS_TIMEOUT_MINS * 60) + 5
 
 
 @main.route('/')

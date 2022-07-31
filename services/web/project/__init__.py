@@ -1,12 +1,13 @@
-from flask import Flask, session
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_session import Session
 from pytz import timezone, utc
-from datetime import timedelta
 from .config import Config
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
+sess = Session()
 
 
 def create_app():
@@ -15,6 +16,7 @@ def create_app():
     app.config.from_object("project.config.Config")
 
     db.init_app(app)
+    sess.init_app(app)
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
@@ -27,8 +29,7 @@ def create_app():
 
     @app.before_request
     def before_request():
-        session.permanent = True
-        app.permanent_session_lifetime = timedelta(minutes=Config.SESS_TIMEOUT)
+        sess.modified = True
 
     @login_manager.user_loader
     def load_user(user_id):

@@ -17,6 +17,10 @@ services:
     depends_on:
       - db
 
+  redis:
+    container_name: cdash-redis
+    image: redis:6.2-alpine
+
   db:
     container_name: cdash-db
     image: postgres:13-alpine
