@@ -94,17 +94,17 @@ def miners():
                 data_dict["values"].append(proofs)
                 chart_epoch[address] = data_dict
 
-        q_result = db.engine.execute("select address, amount, ranknr from (select address, amount, rank() over (partition by address order by address, height desc) ranknr from paymentevent) pe where ranknr <= 10 order by 1, 3 desc").all()
+        q_result = db.engine.execute("select k.epoch, p.address, sum(p.amount) as amount from paymentevent p left join vw_epoch_keys k on p.height >= k.height and p.height < k.pheight where k.epoch >= (select max(epoch) - 10 from vw_epoch_keys) group by k.epoch, p.address order by 2, 1").all()
         if q_result:
             payment_events = q_result
 
-        for address, amount, ranknr in payment_events:
+        for epoch, address, amount in payment_events:
             if address in chart_reward:
-                chart_reward[address]["labels"].append(prev_epoch + 1 - ranknr)
+                chart_reward[address]["labels"].append(epoch - 1)
                 chart_reward[address]["values"].append(amount)
             else:
                 data_dict = {"labels": [], "values": []}
-                data_dict["labels"].append(prev_epoch + 1 - ranknr)
+                data_dict["labels"].append(epoch - 1)
                 data_dict["values"].append(amount)
                 chart_reward[address] = data_dict
 

@@ -14,10 +14,12 @@ cli = FlaskGroup(app)
 @cli.command("create_db")
 def create_db():
     db.engine.execute("DROP VIEW IF EXISTS vw_epoch_rich")
+    db.engine.execute("DROP VIEW IF EXISTS vw_epoch_keys")
     db.drop_all()
     db.create_all()
     # views
-    db.engine.execute("create or replace view vw_epoch_rich as with epochs as (select epoch, height, COALESCE(lag(height, 1) over (order by epoch desc), 9999999999) as pheight from epoch e), proofs as (select e.epoch, e.height, e.pheight, coalesce(sum(m.proofssubmitted), 0) as proofssubmitted from epochs e left join minerhistory m on m.epoch = e.epoch group by e.epoch, height, pheight ), payments as (select pr.epoch, pr.height, pr.proofssubmitted, sum(p.amount) as amount, count(distinct address) as accounts from proofs pr left join paymentevent p on p.height >= pr.height and p.height < pr.pheight and p.type = 'receivedpayment' group by pr.epoch, pr.height, pr.proofssubmitted), corrected as (select epoch, height, proofssubmitted, coalesce(lag(amount, 1) over (order by epoch desc), 0) as amount, coalesce(lag(accounts, 1) over (order by epoch desc), 0) as accounts from payments) select epoch, height, proofssubmitted as proofs, amount as rewards, accounts from corrected")
+    db.engine.execute("create or replace view vw_epoch_keys as select epoch, height, COALESCE(lag(height, 1) over (order by epoch desc), 999999999999) as pheight from epoch e")
+    db.engine.execute("create or replace view vw_epoch_rich as with proofs as (select e.epoch, e.height, e.pheight, coalesce(sum(m.proofssubmitted), 0) as proofssubmitted from vw_epoch_keys e left join minerhistory m on m.epoch = e.epoch group by e.epoch, height, pheight ), payments as (select pr.epoch, pr.height, pr.proofssubmitted, sum(p.amount) as amount, count(distinct address) as accounts from proofs pr left join paymentevent p on p.height >= pr.height and p.height < pr.pheight and p.type = 'receivedpayment' group by pr.epoch, pr.height, pr.proofssubmitted), corrected as (select epoch, height, proofssubmitted, coalesce(lag(amount, 1) over (order by epoch desc), 0) as amount, coalesce(lag(accounts, 1) over (order by epoch desc), 0) as accounts from payments) select epoch, height, proofssubmitted as proofs, amount as rewards, accounts from corrected")
     # commit all
     db.session.commit()
 
