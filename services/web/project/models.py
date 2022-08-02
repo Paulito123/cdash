@@ -11,6 +11,9 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(40), unique=True, nullable=False)
     password = db.Column(db.String(200), primary_key=False, unique=False, nullable=False)
     totp = db.Column(db.String(40), unique=True, nullable=False)
+    wronglogins = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     # def set_password(self, password):
     #     """Create hashed password."""
@@ -35,7 +38,7 @@ class AccountStat(db.Model):
     proofsinepoch = db.Column(db.Integer, nullable=False, default=0)
     lastepochmined = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     def __repr__(self):
         return f'<a href="https://0l.interblockcha.in/address/{self.address}">{self.address}</a>'
@@ -49,7 +52,7 @@ class MinerHistory(db.Model):
     epoch = db.Column(db.Integer, nullable=False, default=0)
     proofssubmitted = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
 
 class PaymentEvent(db.Model):
@@ -82,7 +85,7 @@ class ChainEvent(db.Model):
     sender = db.Column(db.String(100), nullable=True)
     recipient = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
 
 class Epoch(db.Model):
@@ -92,6 +95,7 @@ class Epoch(db.Model):
     epoch = db.Column(db.Integer, nullable=False, unique=True)
     timestamp = db.Column(db.DateTime, nullable=True)
     height = db.Column(db.Integer, nullable=False)
+    totalsupply = db.Column(db.Integer, nullable=True)
     miners = db.Column(db.Integer, nullable=True)
     proofs = db.Column(db.Integer, nullable=True)
     minerspayable = db.Column(db.Integer, nullable=True)

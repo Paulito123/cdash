@@ -2,7 +2,6 @@ import os
 import requests
 from time import sleep
 from sqlalchemy import text, func
-# from sqlalchemy.exc import ProgrammingError
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -218,7 +217,8 @@ def fetch_epoch_data(
 
     # var used to keep track of when next button is disabled
     disabled = False
-    break_threshold = 2
+    # number of rows to be loaded top down
+    break_threshold = 3
     if epochs_in_db >= (last_known_epoch - 1):
         # only few rows need to be loaded
         break_flag = 0
@@ -248,7 +248,22 @@ def fetch_epoch_data(
             output_dict = {}
             for data_name in data_name_list:
                 v = row.find_elements(By.TAG_NAME, "td")[col_index]
-                output_dict[f"{data_name}"] = f"{v.text}"
+                if f"{v.text}"[-2:] == "PM":
+                    output_dict[f"{data_name}"] = f"{v.text}"
+                elif f"{v.text}"[-1:] == "K":
+                    tmp = float(f"{v.text}".replace('K', ''))
+                    tmp = tmp * 1000
+                    output_dict[f"{data_name}"] = f"{int(tmp)}"
+                elif f"{v.text}"[-1:] == "M":
+                    tmp = float(f"{v.text}".replace('M', ''))
+                    tmp = tmp * 1000000
+                    output_dict[f"{data_name}"] = f"{int(tmp)}"
+                elif f"{v.text}"[-1:] == "B":
+                    tmp = float(f"{v.text}".replace('B', ''))
+                    tmp = tmp * 1000000000
+                    output_dict[f"{data_name}"] = f"{int(tmp)}"
+                else:
+                    output_dict[f"{data_name}"] = f"{v.text}"
                 col_index = col_index + 1
 
             output_list.append(output_dict)
@@ -466,7 +481,7 @@ def scrape_0l_home():
 
             xp_rows = "//div[contains(@class, 'epochsTable_inner__jRreG')]/div/div/div/div/div/div/table/tbody/tr"
             xp_button_next = "//div[contains(@class, 'epochsTable_inner__jRreG')]/div/div/div/ul/li[@title='Next Page']/button"
-            data_name_list = ["epoch", "timestamp", "height", "miners", "proofs", "ppm", "minerspayable",
+            data_name_list = ["epoch", "timestamp", "height", "totalsupply", "miners", "proofs", "ppm", "minerspayable",
                               "minerspayableproofs", "validatorproofs", "minerpaymenttotal"]
             last_epoch = session.query(func.max(NetworkStat.epoch)).scalar()
             last_epoch = last_epoch if last_epoch else 0
@@ -493,6 +508,10 @@ def scrape_0l_home():
                 if len(row['minerspayable']) > 0:
                     minerspayable = int(row['minerspayable'].replace(',', ''))
 
+                totalsupply = None
+                if len(row['totalsupply']) > 0:
+                    totalsupply = int(row['totalsupply'].replace(',', ''))
+
                 minerspayableproofs = None
                 if len(row['minerspayableproofs']) > 0:
                     minerspayableproofs = int(row['minerspayableproofs'].replace(',', ''))
@@ -509,6 +528,7 @@ def scrape_0l_home():
                     epoch=epoch,
                     timestamp=timestamp,
                     height=height,
+                    totalsupply=totalsupply,
                     miners=miners,
                     proofs=proofs,
                     minerspayable=minerspayable,

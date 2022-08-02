@@ -86,6 +86,7 @@ class Epoch(Base):
     epoch = Column(Integer, nullable=False, unique=True)
     timestamp = Column(DateTime, nullable=True)
     height = Column(Integer, nullable=False)
+    totalsupply = Column(Integer, nullable=True)
     miners = Column(Integer, nullable=True)
     proofs = Column(Integer, nullable=True)
     minerspayable = Column(Integer, nullable=True)
