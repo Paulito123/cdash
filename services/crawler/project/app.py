@@ -232,7 +232,6 @@ def fetch_epoch_data(
         sleep(5)
         # get table rows by xpath
         rows = driver.find_elements(By.XPATH, xp_rows)
-
         # iterate data row by row
         for row in rows:
             # discard empty rows
@@ -248,7 +247,7 @@ def fetch_epoch_data(
             output_dict = {}
             for data_name in data_name_list:
                 v = row.find_elements(By.TAG_NAME, "td")[col_index]
-                if f"{v.text}"[-2:] == "PM":
+                if f"{v.text}"[-2:] in ["PM", "AM"]:
                     output_dict[f"{data_name}"] = f"{v.text}"
                 elif f"{v.text}"[-1:] == "K":
                     tmp = float(f"{v.text}".replace('K', ''))
